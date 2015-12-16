@@ -19,5 +19,5 @@ If vis:=false
 
 else
 
-* Publications: /coeffs [Coeff.msg] /path [nav_msgs/Path]
+* Publications: /coeffs [Coeff.msg] /splines_path [nav_msgs/Path]
 * Subscribtions: /waypoint_list [nav_msgs/Path] /coeffs [Coeff.msg]
