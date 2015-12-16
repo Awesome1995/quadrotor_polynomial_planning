@@ -16,7 +16,7 @@ class path_vis:
 
 		# ROS initialization
 		self.coeff_sub = rospy.Subscriber('coeffs',Coeff, self.coeffs_CB)
-		self.path_pub = rospy.Publisher('path',Path,queue_size=1)
+		self.path_pub = rospy.Publisher('splines_path',Path,queue_size=1)
 
 	def coeffs_CB(self,msg):
 		self.s = au.multiArray2NumpyArray(msg.s)
