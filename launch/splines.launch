@@ -1,0 +1,13 @@
+<launch>
+
+    <!-- Arguments -->
+    <arg name="vis" default="true" />
+    
+    <!-- Start Splines Node -->
+    <node name="traj_gen" pkg="splines" type="traj.py" output="screen" />
+    
+    <!-- Start Visualization Node -->
+    <node if="$(arg vis)" name="traj_vis" pkg="splines" type="vis_path.py" output="screen" />
+
+
+</launch>
