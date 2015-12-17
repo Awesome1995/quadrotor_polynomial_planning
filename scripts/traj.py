@@ -8,7 +8,7 @@ from geometry_msgs.msg import PoseStamped, TwistStamped
 import matplotlib.pyplot as pl
 
 # Custom message
-from fla.msg import Coeff
+from splines.msg import Coeff
 
 import array_utils as au
 

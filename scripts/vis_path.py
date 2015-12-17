@@ -5,7 +5,7 @@ from nav_msgs.msg import Path
 from std_msgs.msg import Float64, Float64MultiArray
 from geometry_msgs.msg import PoseStamped, TwistStamped
 
-from fla.msg import Coeff
+from splines.msg import Coeff
 
 import array_utils as au
 
