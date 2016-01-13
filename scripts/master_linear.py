@@ -65,7 +65,8 @@ class master:
 		self.dq = 0.001
 
 		self.received_coeff = False
-		self.stop = False
+		self.first_stop = False
+		self.stop_now = False
 
 	
 		# ROS initialization
@@ -208,23 +209,27 @@ class master:
 
 
 	def calc_vel(self):
-		if self.s_v <= self.sf_start and not self.stop:
+
+		if self.L-self.s_e <= self.sf_stop:
+			self.stop_now = True
+
+		if self.s_v <= self.sf_start and not self.first_stop:
 			s_v = self.s_v
 			self.v = np.sqrt(2*(1./6*self.startCoeff[0]*s_v**6 + 1./5*self.startCoeff[1]*s_v**5 + 1./4*self.startCoeff[2]*s_v**4 + 1./3*self.startCoeff[3]*s_v**3 + 1./2*self.startCoeff[4]*s_v**2 + self.startCoeff[5]*s_v) + self.v_0**2)
 			self.at = self.startCoeff[0]*s_v**5 + self.startCoeff[1]*s_v**4 + self.startCoeff[2]*s_v**3 + self.startCoeff[3]*s_v**2 + self.startCoeff[4]*s_v + self.startCoeff[5]
 			self.jt = self.v*(5*self.startCoeff[0]*s_v**4 + 4*self.startCoeff[1]*s_v**3 + 3*self.startCoeff[2]*s_v**2 + 2*self.startCoeff[3]*s_v**1 + self.startCoeff[4])
 			self.ut = self.v*(20*self.startCoeff[0]*s_v**3 + 12*self.startCoeff[1]*s_v**2 + 6*self.startCoeff[2]*s_v + 2*self.startCoeff[3])
 			self.s_v += self.v*controlDT	
-		elif self.L-self.s_e <= self.sf_stop:
+		elif self.stop_now:
 			# Check if we need to stop quicker than what we expected
-			if self.L < self.sf_stop and not self.stop:
+			if self.L < self.sf_stop and not self.first_stop:
 				self.sf_stop = self.L
 				self.accel_calc.decel(self.sf_stop,self.v,0,0,0,0,0)
 				self.stopCoeff = self.accel_calc.decelCoeff
 
-			if not self.stop:
+			if not self.first_stop:
 				self.s_v = 0
-				self.stop= True
+				self.first_stop= True
 
 			s_v = self.s_v
 			self.v_0 = self.v_max
@@ -257,7 +262,11 @@ class master:
 
 			rospy.loginfo("Flying")
 				
-			
+		
+		elif self.go == True and data.buttons[self.joyinfo.Y]:
+			rospy.loginfo("Enerting state of hover")
+			self.stop_now = True
+
 		# emergency disable
 		elif data.buttons[self.joyinfo.B] and self.status == FLYING:
 			self.status = NOT_FLYING
@@ -330,13 +339,12 @@ class master:
 			# rospy.loginfo(self.s_e)
 
 			self.eval_splines()
-
-			rospy.loginfo(self.v)
-
+			
 			if self.v < 0.05:
 				self.go = False
 				self.received_coeff = False
-				self.stop = False
+				self.first_stop = False
+				self.stop_now
 				self.v = 0
 				self.at = 0
 				self.jt = 0
