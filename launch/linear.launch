@@ -2,19 +2,11 @@
 
     <!-- Arguments -->
     <arg name="vis" default="true" />
-    <arg name="v_max" default="1"/>
-    <arg name="a" default="2"/>
     
     <!-- Start Splines Node -->
     <node name="traj_gen" pkg="splines" type="traj_linear.py" output="screen" />
     
     <!-- Start Visualization Node -->
     <node if="$(arg vis)" name="traj_vis" pkg="splines" type="vis_path.py" output="screen" />
-
-        <!-- Desired max velocity-->
-    <param name="v_max" type="double" value="$(arg v_max)" />
-
-    <!-- Desired start and stop acceleration-->
-    <param name="a" type="double" value="$(arg a)" />
 
 </launch>

@@ -7,24 +7,12 @@ from geometry_msgs.msg import PoseStamped, TwistStamped
 
 # Custom message
 from splines.msg import Coeff
-from splines.msg import State
-
 
 import array_utils as au
-import tang_accel as ac
 
 class gen_traj:
 	def __init__(self):
-
-		self.a_start = rospy.get_param('/a')
-
-		# Maximum desired velocity
-		self.v_max = rospy.get_param('/v_max')
-
-		# Initialize acceleration spline generation
-		self.accel_calc = ac.tangAccel()
-
-
+		
 		# Step size for psuedo distance variable
 		self.h = 1.0
 
@@ -34,23 +22,20 @@ class gen_traj:
 		# Arc length delta
 		self.dq = 0.005
 
+		self.stop_first = True
+
 		self.coeff = Coeff()
 
 		# ROS initialization
 		self.geom_props = Float64MultiArray()
 		self.wp_sub = rospy.Subscriber('/waypoint_list', Path, self.WP_list_CB)
 		self.odom_sub = rospy.Subscriber('/odom',Float64,self.odom_CB)
-		self.state_sub = rospy.Subscriber('/state',State,self.state_CB)
 		self.coeff_pub = rospy.Publisher('/coeffs',Coeff,queue_size=1)
 		rospy.loginfo("Trajecotry Spline Initialized")
 		rospy.loginfo("Waiting for waypoint list...")
 
 	def odom_CB(self, data):
-		self.s_e = data.data
-
-	def state_CB(self,data):
-		self.state = data
-
+		self.s_v = data.data
 
 	def WP_list_CB(self,msg):
 		rospy.loginfo("Waypoints received")
@@ -59,45 +44,29 @@ class gen_traj:
 		self.WP_parse()
 		self.line_coeffs()
 		self.calc_path()
-		self.calc_profiles()
 		self.send_coeff()
 		then = rospy.get_time()
 		print then-now
 
 	def send_coeff(self):
 		self.seg_len_MA = Float64MultiArray()
-		self.acc_len_MA = Float64MultiArray()
 
 		self.coeff_x_MA = Float64MultiArray()
 		self.coeff_y_MA = Float64MultiArray()
 		self.coeff_z_MA = Float64MultiArray()
 
-		self.coeff_a_MA = Float64MultiArray()
-
-		self.v_0_MA = Float64MultiArray()
-
 		# Convert numpy array to multi array
 		au.numpyArray2MultiArray(self.s,self.seg_len_MA)
-		au.numpyArray2MultiArray(self.s_a,self.acc_len_MA)
 
 		au.numpyArray2MultiArray(self.coeff_x,self.coeff_x_MA)
 		au.numpyArray2MultiArray(self.coeff_y,self.coeff_y_MA)
 		au.numpyArray2MultiArray(self.coeff_z,self.coeff_z_MA)
 
-		au.numpyArray2MultiArray(self.coeff_a,self.coeff_a_MA)
-
-		au.numpyArray2MultiArray(self.v_0,self.v_0_MA)
-
 		self.coeff.s = self.seg_len_MA
-		self.coeff.s_a = self.acc_len_MA
 
 		self.coeff.coeff_x = self.coeff_x_MA
 		self.coeff.coeff_y = self.coeff_y_MA
 		self.coeff.coeff_z = self.coeff_z_MA
-
-		self.coeff.coeff_a = self.coeff_a_MA
-
-		self.coeff.v_0 = self.v_0_MA
 
 		self.coeff_pub.publish(self.coeff)
 		
@@ -173,70 +142,6 @@ class gen_traj:
 		self.s = self.s[1:]
 		self.L = self.s[-1]
 
-	def calc_profiles(self):
-
-		sf_start = 1.038*(self.v_max**2/self.a_start)
-		sf_stop = 1.038*(self.v_max**2/self.a_start)
-		sf_c = sf_start
-
-		sf_accel = 1.038*(self.v_max**2 - self.state.v**2)/self.a_start
-		sf_decel = 1.038*(self.state.v**2 - 0**2)/self.a_start
-
-		# Initial kick for vehicle
-		if self.state.v == 0:
-			self.s_a = np.hstack((sf_start, self.L - sf_stop, self.L))
-
-			rospy.loginfo(self.s_a)
-
-			# Check if there's overlap
-			temp = self.s_a[1:]-self.s_a[:-1]
-			if (temp>0).all():
-				self.no_overlap = True
-			else:
-				self.no_overlap = False
-			if self.no_overlap:	
-				self.state.v = 0.05
-				self.accel_calc.accel(sf_start,self.state.v,self.v_max,0,0,0)
-				self.accel_calc.decel(sf_stop,self.v_max,0,0,0,0,0)
-				self.startCoeff = self.accel_calc.accelCoeff
-				self.stopCoeff = self.accel_calc.decelCoeff
-				self.s_a = np.array([sf_accel, self.L - sf_stop, self.L])
-				cruise_coeff = np.zeros(6)
-				self.coeff_a = np.vstack((self.startCoeff,cruise_coeff,self.stopCoeff))
-				self.v_0 = np.array([self.state.v,self.v_max,self.v_max])
-			else:
-				rospy.loginfo("Overlap, do something here")
-				rospy.sleep(10)	
-		# Condition for being in cruise phase
-		elif sf_accel == 0 and self.L > sf_stop:
-			self.accel_calc.decel(sf_stop,self.v_max,0,0,0,0,0)
-			self.stopCoeff = self.accel_calc.decelCoeff
-			self.s_a = np.array([self.L - sf_stop, self.L])
-			cruise_coeff = np.zeros(6)
-			self.coeff_a = np.vstack((cruise_coeff,self.stopCoeff))
-			self.v_0 = np.array([self.v_max,self.v_max])
-		# Condition for stop phase
-		elif self.L < sf_stop:
-			# if self.L < sf_decel:
-			# 	sf_decel = self.L
-			# 	rospy.loginfo('Stop sooner')
-			self.accel_calc.decel(sf_decel,self.state.v,0,self.state.a,0,self.state.j/self.state.v, self.state.u/self.state.v)
-			self.stopCoeff = self.accel_calc.decelCoeff
-			rospy.loginfo(self.stopCoeff)
-			self.s_a = np.array([self.L])
-			self.coeff_a = np.array([self.stopCoeff])
-			self.v_0 = np.array([self.state.v])
-		# In start-up phase
-		else:
-			self.accel_calc.accel(sf_start,self.state.v,self.v_max,self.state.a,0,self.state.j/self.state.v)
-			self.accel_calc.decel(sf_stop,self.v_max,0,0,0,0,0)
-			self.startCoeff = self.accel_calc.accelCoeff
-			self.stopCoeff = self.accel_calc.decelCoeff
-			self.s_a = np.array([sf_accel, self.L - sf_stop, self.L])
-			cruise_coeff = np.zeros(6)
-			self.coeff_a = np.vstack((self.startCoeff,cruise_coeff,self.stopCoeff))
-			self.v_0 = np.array([self.state.v,self.v_max,self.v_max])
-					
 			  
 if __name__ == '__main__':
 	try:

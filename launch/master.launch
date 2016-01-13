@@ -1,0 +1,19 @@
+<launch>
+
+    <!-- Arguments -->
+    <arg name="v_max" default="1"/>
+    <arg name="a" default="2"/>
+
+    <!-- start the joystick drivers -->
+    <include file="$(find raven_utils)/launch/joy.launch" />
+  
+    <!-- Start Master Node -->
+    <node name="master" pkg="splines" type="master_linear.py" output="screen" ns="RQ01s"/>
+    
+    <!-- Desired max velocity-->
+    <param name="v_max" type="double" value="$(arg v_max)" />
+
+    <!-- Desired start and stop acceleration-->
+    <param name="a" type="double" value="$(arg a)" />
+
+</launch>

@@ -1,7 +1,4 @@
 std_msgs/Float64MultiArray s
-std_msgs/Float64MultiArray s_a
 std_msgs/Float64MultiArray coeff_x
 std_msgs/Float64MultiArray coeff_y
 std_msgs/Float64MultiArray coeff_z
-std_msgs/Float64MultiArray coeff_a
-std_msgs/Float64MultiArray v_0

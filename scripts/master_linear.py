@@ -12,10 +12,11 @@ from splines.msg import Coeff
 from splines.msg import State
 from acl_fsw.msg import JoyDef
 
-from aclpy import utils
+import utils
 import array_utils as au
 
-import matplotlib.pyplot as pl
+import tang_accel as ac
+
 
 controlDT = 1./100
 
@@ -31,6 +32,28 @@ RESET_INTEGRATORS = 4
 class master:
 	def __init__(self):
 
+		self.a_start = rospy.get_param('/a')
+
+		# Maximum desired velocity
+		self.v_max = rospy.get_param('/v_max')
+
+		# Initialize acceleration spline generation
+		self.accel_calc = ac.tangAccel()
+
+		self.sf_start = 1.038*(self.v_max**2/self.a_start)
+		self.sf_stop = 1.038*(self.v_max**2/self.a_start)
+
+		self.v_kick = 0.05
+
+		self.accel_calc.accel(self.sf_start,self.v_kick,self.v_max,0,0,0)
+		self.accel_calc.decel(self.sf_stop,self.v_max,0,0,0,0,0)
+
+		self.startCoeff = self.accel_calc.accelCoeff
+		self.stopCoeff = self.accel_calc.decelCoeff
+
+		rospy.loginfo(self.startCoeff)
+		rospy.loginfo(self.stopCoeff)
+
 		self.status = NOT_FLYING
 		self.transmitting = True
 		self.wpType = DISABLE
@@ -44,6 +67,7 @@ class master:
 		self.dq = 0.001
 
 		self.received_coeff = False
+		self.stop_first = True
 
 		self.m = rospy.get_param('mass')
 
@@ -73,6 +97,7 @@ class master:
 		self.ut = 0.0
 
 		self.s_e = 0
+		self.s_v = 0
 		self.L = 0
 
 		self.alt = 0.5
@@ -89,15 +114,10 @@ class master:
 
 	def coeffs_CB(self,msg):
 		self.s = au.multiArray2NumpyArray(msg.s)
-		self.s_acc = au.multiArray2NumpyArray(msg.s_a)
 
 		self.coeff_x = au.multiArray2NumpyArray(msg.coeff_x)
 		self.coeff_y = au.multiArray2NumpyArray(msg.coeff_y)
 		self.coeff_z = au.multiArray2NumpyArray(msg.coeff_z)
-
-		self.coeff_a = au.multiArray2NumpyArray(msg.coeff_a)
-
-		self.v_0 = au.multiArray2NumpyArray(msg.v_0)
 
 		self.N_wp = len(self.s)+1
 		self.L = self.s[-1]
@@ -106,7 +126,7 @@ class master:
 
 		self.received_coeff = True
 
-		rospy.loginfo("Received Coeffs")
+		# rospy.loginfo("Received Coeffs")
 
 
 	def send_goal(self):
@@ -116,21 +136,10 @@ class master:
 	def send_odometry(self):
 		self.pubOdom.publish(self.s_e)
 
-	def send_state(self):
-		msg = State()
-		msg.v = self.v
-		msg.a = self.at
-		msg.j = self.jt
-		msg.u = self.ut
-		self.pubState.publish(msg)
-
 	def eval_splines(self):
 		flag = False
 		i = 0
 		while not flag:
-			rospy.loginfo(self.s)
-			rospy.loginfo(self.s[i])
-			rospy.loginfo(i)
 			if self.s_e < self.s[i]:
 				flag = True
 				if i > 0:
@@ -143,10 +152,17 @@ class master:
 				self.geom_props(i,q)
 			else:
 				i+=1
-				if i > len(self.s):
+				# Protect against out-of-bounds error
+				if self.s_e > self.s[-1]:
 					flag = True
-					rospy.loginfo("Out of bounds")
-
+					i = len(self.s)-1
+					self.s_e = self.s[-1]
+					q = 1
+					self.x = self.coeff_x[i,0]*q**3 + self.coeff_x[i,1]*q**2 + self.coeff_x[i,2]*q + self.coeff_x[i,3]
+					self.y = self.coeff_y[i,0]*q**3 + self.coeff_y[i,1]*q**2 + self.coeff_y[i,2]*q + self.coeff_y[i,3]
+					self.z = self.coeff_z[i,0]*q**3 + self.coeff_z[i,1]*q**2 + self.coeff_z[i,2]*q + self.coeff_z[i,3]
+					self.geom_props(i,q)
+				
 	def geom_props(self,i,q):
 
 		x_dq = 3*self.coeff_x[i,0]*q**2 + 2*self.coeff_x[i,1]*q + self.coeff_x[i,2]
@@ -254,22 +270,31 @@ class master:
 
 
 	def calc_vel(self):
-		flag = False
-		i = 0
-		while not flag:
-			if self.s_e < self.s_acc[i]:
-				if i > 0:
-					s_e = self.s_e - self.s_acc[i-1]
-				else:
-					s_e = self.s_e
-				flag = True
-				self.v = np.sqrt(2*(1./6*self.coeff_a[i,0]*s_e**6 + 1./5*self.coeff_a[i,1]*s_e**5 + 1./4*self.coeff_a[i,2]*s_e**4 + 1./3*self.coeff_a[i,3]*s_e**3 + 1./2*self.coeff_a[i,4]*s_e**2 + self.coeff_a[i,5]*s_e) + self.v_0[i]**2)
-				self.at = self.coeff_a[i,0]*s_e**5 + self.coeff_a[i,1]*s_e**4 + self.coeff_a[i,2]*s_e**3 + self.coeff_a[i,3]*s_e**2 + self.coeff_a[i,4]*s_e + self.coeff_a[i,5]
-				self.jt = self.v*(5*self.coeff_a[i,0]*s_e**4 + 4*self.coeff_a[i,1]*s_e**3 + 3*self.coeff_a[i,2]*s_e**2 + 2*self.coeff_a[i,3]*s_e**1 + self.coeff_a[i,4])
-				self.ut = self.v*(20*self.coeff_a[i,0]*s_e**3 + 12*self.coeff_a[i,1]*s_e**2 + 6*self.coeff_a[i,2]*s_e + 2*self.coeff_a[i,3])
-			else:
-				i+=1
-
+		if self.s_v <= self.sf_start and self.stop_first:
+			s_v = self.s_v
+			self.v_0 = self.v_kick
+			self.v = np.sqrt(2*(1./6*self.startCoeff[0]*s_v**6 + 1./5*self.startCoeff[1]*s_v**5 + 1./4*self.startCoeff[2]*s_v**4 + 1./3*self.startCoeff[3]*s_v**3 + 1./2*self.startCoeff[4]*s_v**2 + self.startCoeff[5]*s_v) + self.v_0**2)
+			self.at = self.startCoeff[0]*s_v**5 + self.startCoeff[1]*s_v**4 + self.startCoeff[2]*s_v**3 + self.startCoeff[3]*s_v**2 + self.startCoeff[4]*s_v + self.startCoeff[5]
+			self.jt = self.v*(5*self.startCoeff[0]*s_v**4 + 4*self.startCoeff[1]*s_v**3 + 3*self.startCoeff[2]*s_v**2 + 2*self.startCoeff[3]*s_v**1 + self.startCoeff[4])
+			self.ut = self.v*(20*self.startCoeff[0]*s_v**3 + 12*self.startCoeff[1]*s_v**2 + 6*self.startCoeff[2]*s_v + 2*self.startCoeff[3])
+		elif self.L <= 1.1*self.sf_stop:
+			rospy.loginfo("Stopping")
+			if self.stop_first:
+				self.s_v = 0
+				self.stop_first = False
+			s_v = self.s_v
+			self.v_0 = self.v_max
+			self.v = np.sqrt(2*(1./6*self.stopCoeff[0]*s_v**6 + 1./5*self.stopCoeff[1]*s_v**5 + 1./4*self.stopCoeff[2]*s_v**4 + 1./3*self.stopCoeff[3]*s_v**3 + 1./2*self.stopCoeff[4]*s_v**2 + self.stopCoeff[5]*s_v) + self.v_0**2)
+			self.at = self.stopCoeff[0]*s_v**5 + self.stopCoeff[1]*s_v**4 + self.stopCoeff[2]*s_v**3 + self.stopCoeff[3]*s_v**2 + self.stopCoeff[4]*s_v + self.stopCoeff[5]
+			self.jt = self.v*(5*self.stopCoeff[0]*s_v**4 + 4*self.stopCoeff[1]*s_v**3 + 3*self.stopCoeff[2]*s_v**2 + 2*self.stopCoeff[3]*s_v**1 + self.stopCoeff[4])
+			self.ut = self.v*(20*self.stopCoeff[0]*s_v**3 + 12*self.stopCoeff[1]*s_v**2 + 6*self.stopCoeff[2]*s_v + 2*self.stopCoeff[3])
+			rospy.loginfo(self.v)
+		else:
+			s_v = self.s_v
+			self.v = self.v_max
+			self.at = 0
+			self.jt = 0
+			self.ut = 0
 
 
 	def cmdTimer(self,e):	
@@ -277,19 +302,24 @@ class master:
 			self.calc_vel()
 
 			self.s_e += self.v*controlDT 
+			self.s_v += self.v*controlDT
 
 			# rospy.loginfo(self.s_e)
 
 			self.eval_splines()
 
-			if self.v < 0.01:
+			rospy.loginfo(self.v)
+
+			if self.v < 0.05:
 				self.go = False
 				self.received_coeff = False
+				self.stop_first = True
 				self.v = 0
 				self.at = 0
 				self.jt = 0
 				self.ut = 0
 				self.s_e = 0
+				self.s_v = 0
 				rospy.loginfo("At last waypoint")
 
 			self.goal.pos.x = self.x
@@ -321,8 +351,6 @@ class master:
 
 		self.send_goal()
 		self.send_odometry()
-		self.send_state()
-
 
 if __name__ == '__main__':
 	ns = rospy.get_namespace()
