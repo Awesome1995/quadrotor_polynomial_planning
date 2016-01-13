@@ -2,7 +2,7 @@
 
     <!-- Arguments -->
     <arg name="v_max" default="1"/>
-    <arg name="a" default="2"/>
+    <arg name="a_max" default="2"/>
 
     <!-- start the joystick drivers -->
     <include file="$(find raven_utils)/launch/joy.launch" />
@@ -14,6 +14,6 @@
     <param name="v_max" type="double" value="$(arg v_max)" />
 
     <!-- Desired start and stop acceleration-->
-    <param name="a" type="double" value="$(arg a)" />
+    <param name="a_max" type="double" value="$(arg a_max)" />
 
 </launch>
