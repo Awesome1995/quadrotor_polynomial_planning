@@ -51,9 +51,6 @@ class master:
 		self.startCoeff = self.accel_calc.accelCoeff
 		self.stopCoeff = self.accel_calc.decelCoeff
 
-		rospy.loginfo(self.startCoeff)
-		rospy.loginfo(self.stopCoeff)
-
 		self.status = NOT_FLYING
 		self.transmitting = True
 		self.wpType = DISABLE
@@ -67,7 +64,7 @@ class master:
 		self.dq = 0.001
 
 		self.received_coeff = False
-		self.stop_first = True
+		self.stop = False
 
 		self.m = rospy.get_param('mass')
 
@@ -126,7 +123,7 @@ class master:
 
 		self.received_coeff = True
 
-		# rospy.loginfo("Received Coeffs")
+		rospy.loginfo("Received Coeffs")
 
 
 	def send_goal(self):
@@ -270,27 +267,26 @@ class master:
 
 
 	def calc_vel(self):
-		if self.s_v <= self.sf_start and self.stop_first:
+		if self.s_v <= self.sf_start and not self.stop:
 			s_v = self.s_v
 			self.v_0 = self.v_kick
 			self.v = np.sqrt(2*(1./6*self.startCoeff[0]*s_v**6 + 1./5*self.startCoeff[1]*s_v**5 + 1./4*self.startCoeff[2]*s_v**4 + 1./3*self.startCoeff[3]*s_v**3 + 1./2*self.startCoeff[4]*s_v**2 + self.startCoeff[5]*s_v) + self.v_0**2)
 			self.at = self.startCoeff[0]*s_v**5 + self.startCoeff[1]*s_v**4 + self.startCoeff[2]*s_v**3 + self.startCoeff[3]*s_v**2 + self.startCoeff[4]*s_v + self.startCoeff[5]
 			self.jt = self.v*(5*self.startCoeff[0]*s_v**4 + 4*self.startCoeff[1]*s_v**3 + 3*self.startCoeff[2]*s_v**2 + 2*self.startCoeff[3]*s_v**1 + self.startCoeff[4])
 			self.ut = self.v*(20*self.startCoeff[0]*s_v**3 + 12*self.startCoeff[1]*s_v**2 + 6*self.startCoeff[2]*s_v + 2*self.startCoeff[3])
-		elif self.L <= 1.1*self.sf_stop:
-			rospy.loginfo("Stopping")
-			if self.stop_first:
+			self.s_v += self.v*controlDT	
+		elif self.L-self.s_e <= 1.1*self.sf_stop:
+			if not self.stop:
 				self.s_v = 0
-				self.stop_first = False
+				self.stop= True
 			s_v = self.s_v
 			self.v_0 = self.v_max
 			self.v = np.sqrt(2*(1./6*self.stopCoeff[0]*s_v**6 + 1./5*self.stopCoeff[1]*s_v**5 + 1./4*self.stopCoeff[2]*s_v**4 + 1./3*self.stopCoeff[3]*s_v**3 + 1./2*self.stopCoeff[4]*s_v**2 + self.stopCoeff[5]*s_v) + self.v_0**2)
 			self.at = self.stopCoeff[0]*s_v**5 + self.stopCoeff[1]*s_v**4 + self.stopCoeff[2]*s_v**3 + self.stopCoeff[3]*s_v**2 + self.stopCoeff[4]*s_v + self.stopCoeff[5]
 			self.jt = self.v*(5*self.stopCoeff[0]*s_v**4 + 4*self.stopCoeff[1]*s_v**3 + 3*self.stopCoeff[2]*s_v**2 + 2*self.stopCoeff[3]*s_v**1 + self.stopCoeff[4])
 			self.ut = self.v*(20*self.stopCoeff[0]*s_v**3 + 12*self.stopCoeff[1]*s_v**2 + 6*self.stopCoeff[2]*s_v + 2*self.stopCoeff[3])
-			rospy.loginfo(self.v)
+			self.s_v += self.v*controlDT
 		else:
-			s_v = self.s_v
 			self.v = self.v_max
 			self.at = 0
 			self.jt = 0
@@ -302,7 +298,6 @@ class master:
 			self.calc_vel()
 
 			self.s_e += self.v*controlDT 
-			self.s_v += self.v*controlDT
 
 			# rospy.loginfo(self.s_e)
 
@@ -313,7 +308,7 @@ class master:
 			if self.v < 0.05:
 				self.go = False
 				self.received_coeff = False
-				self.stop_first = True
+				self.stop = False
 				self.v = 0
 				self.at = 0
 				self.jt = 0
