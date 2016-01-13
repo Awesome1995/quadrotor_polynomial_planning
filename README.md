@@ -31,4 +31,4 @@ linear.launch:
 gandalf.launch:
 
 * Publications: /odom [Float64.msg], /goal [acl_fw/QuadGoal.msg]
-* Subscribtions: /joy [acl_fsw/JoyDef.msg], /coeffs [Coeff.msg]
+* Subscribtions: /joy [acl_fsw/JoyDef.msg], /coeffs [Coeff.msg], /pose [PoseStamped.msg]
