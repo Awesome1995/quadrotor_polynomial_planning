@@ -94,7 +94,7 @@ class master:
 		self.s_v = 0
 		self.L = 0
 
-		self.alt = 0.5
+		self.alt = 1.0
 
 		self.x = 0
 		self.y = 0
@@ -299,7 +299,7 @@ class master:
 				self.goal.vel.y = 0
 				self.goal.vel.z = 0
 
-				self.goal.yaw = np.pi/2 #0*np.arctan2(self.T[1],self.T[0])
+				self.goal.yaw = 0  #0*np.arctan2(self.T[1],self.T[0])
 				self.dyaw = 0
 				rospy.loginfo("Ready")
 
@@ -380,7 +380,7 @@ class master:
 
 			self.goal.dyaw = 0*self.v*self.K*np.sin(self.B[2])	
 
-			self.goal.yaw = np.pi/2 #0*np.arctan2(self.T[1],self.T[0])
+			self.goal.yaw = 0 #0*np.arctan2(self.T[1],self.T[0])
 			
 
 		self.send_goal()
