@@ -214,12 +214,14 @@ class master:
 			self.stop_now = True
 
 		if self.s_v <= self.sf_start and not self.first_stop:
+
 			s_v = self.s_v
 			self.v = np.sqrt(2*(1./6*self.startCoeff[0]*s_v**6 + 1./5*self.startCoeff[1]*s_v**5 + 1./4*self.startCoeff[2]*s_v**4 + 1./3*self.startCoeff[3]*s_v**3 + 1./2*self.startCoeff[4]*s_v**2 + self.startCoeff[5]*s_v) + self.v_0**2)
 			self.at = self.startCoeff[0]*s_v**5 + self.startCoeff[1]*s_v**4 + self.startCoeff[2]*s_v**3 + self.startCoeff[3]*s_v**2 + self.startCoeff[4]*s_v + self.startCoeff[5]
 			self.jt = self.v*(5*self.startCoeff[0]*s_v**4 + 4*self.startCoeff[1]*s_v**3 + 3*self.startCoeff[2]*s_v**2 + 2*self.startCoeff[3]*s_v**1 + self.startCoeff[4])
 			self.ut = self.v*(20*self.startCoeff[0]*s_v**3 + 12*self.startCoeff[1]*s_v**2 + 6*self.startCoeff[2]*s_v + 2*self.startCoeff[3])
-			self.s_v += self.v*controlDT	
+			self.s_v += self.v*controlDT
+
 		elif self.stop_now:
 			# Check if we need to stop quicker than what we expected
 			if self.L < self.sf_stop and not self.first_stop:
@@ -339,12 +341,13 @@ class master:
 			# rospy.loginfo(self.s_e)
 
 			self.eval_splines()
-			
+
 			if self.v < 0.05:
 				self.go = False
 				self.received_coeff = False
 				self.first_stop = False
-				self.stop_now
+				self.stop_now = False
+				self.v_0 = self.v_kick
 				self.v = 0
 				self.at = 0
 				self.jt = 0
