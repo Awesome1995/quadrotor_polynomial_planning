@@ -125,6 +125,8 @@ class master:
 
 		rospy.loginfo("Received Coeffs")
 
+		self.distance_check()
+
 
 	def send_goal(self):
 		self.goal.waypointType = self.wpType
@@ -266,10 +268,30 @@ class master:
 				rospy.loginfo("Landed!")
 
 
+	def distance_check(self):
+		# Check if path length is longer than start and stop
+			if self.L < (self.sf_start+self.sf_stop):
+				self.sf_start = self.L/2
+				self.sf_stop = self.L/2
+				self.v_max = np.sqrt(self.sf_start*self.a_start/1.038)
+
+				rospy.loginfo("Changing max velocity")
+
+				self.accel_calc.accel(self.sf_start,self.v,self.v_max,self.at,0,0)
+				self.accel_calc.decel(self.sf_stop,self.v_max,0,0,0,0,0)
+
+				self.startCoeff = self.accel_calc.accelCoeff
+				self.stopCoeff = self.accel_calc.decelCoeff
+
+				if self.v == 0:
+					self.v_0 = self.v_kick
+				else:
+					self.v_0 = self.v
+
+
 	def calc_vel(self):
 		if self.s_v <= self.sf_start and not self.stop:
 			s_v = self.s_v
-			self.v_0 = self.v_kick
 			self.v = np.sqrt(2*(1./6*self.startCoeff[0]*s_v**6 + 1./5*self.startCoeff[1]*s_v**5 + 1./4*self.startCoeff[2]*s_v**4 + 1./3*self.startCoeff[3]*s_v**3 + 1./2*self.startCoeff[4]*s_v**2 + self.startCoeff[5]*s_v) + self.v_0**2)
 			self.at = self.startCoeff[0]*s_v**5 + self.startCoeff[1]*s_v**4 + self.startCoeff[2]*s_v**3 + self.startCoeff[3]*s_v**2 + self.startCoeff[4]*s_v + self.startCoeff[5]
 			self.jt = self.v*(5*self.startCoeff[0]*s_v**4 + 4*self.startCoeff[1]*s_v**3 + 3*self.startCoeff[2]*s_v**2 + 2*self.startCoeff[3]*s_v**1 + self.startCoeff[4])
