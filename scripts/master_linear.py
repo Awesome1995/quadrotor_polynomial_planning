@@ -9,7 +9,6 @@ from sensor_msgs.msg import Joy
 
 from acl_fsw.msg import QuadGoal
 from splines.msg import Coeff
-from splines.msg import State
 from acl_fsw.msg import JoyDef
 
 import utils
@@ -32,7 +31,7 @@ RESET_INTEGRATORS = 4
 class master:
 	def __init__(self):
 
-		self.a_start = rospy.get_param('/a')
+		self.a_max = rospy.get_param('/a_max')
 
 		# Maximum desired velocity
 		self.v_max = rospy.get_param('/v_max')
@@ -40,8 +39,8 @@ class master:
 		# Initialize acceleration spline generation
 		self.accel_calc = ac.tangAccel()
 
-		self.sf_start = 1.038*(self.v_max**2/self.a_start)
-		self.sf_stop = 1.038*(self.v_max**2/self.a_start)
+		self.sf_start = 1.038*(self.v_max**2/self.a_max)
+		self.sf_stop = 1.038*(self.v_max**2/self.a_max)
 
 		self.v_kick = 0.05
 
@@ -68,16 +67,11 @@ class master:
 		self.received_coeff = False
 		self.stop = False
 
-		self.m = rospy.get_param('mass')
-
-		self.d1 = 0.024/self.m
-		self.d2 = 0/self.m
-
+	
 		# ROS initialization
 		self.pubOdom = rospy.Publisher('/odom', Float64, queue_size=1)
 		self.coeff_sub = rospy.Subscriber('/coeffs',Coeff, self.coeffs_CB)
 		self.pubGoal = rospy.Publisher('goal', QuadGoal, queue_size=1)
-		self.pubState = rospy.Publisher('/state',State, queue_size=1)
 		self.pose_sub  = rospy.Subscriber('pose', PoseStamped, self.pose_CB)
 		self.joy = rospy.Subscriber("/joy", Joy, self.joyCB)
 
@@ -231,7 +225,7 @@ class master:
 			if not self.stop:
 				self.s_v = 0
 				self.stop= True
-				
+
 			s_v = self.s_v
 			self.v_0 = self.v_max
 			self.v = np.sqrt(2*(1./6*self.stopCoeff[0]*s_v**6 + 1./5*self.stopCoeff[1]*s_v**5 + 1./4*self.stopCoeff[2]*s_v**4 + 1./3*self.stopCoeff[3]*s_v**3 + 1./2*self.stopCoeff[4]*s_v**2 + self.stopCoeff[5]*s_v) + self.v_0**2)
@@ -358,14 +352,14 @@ class master:
 			self.goal.vel.y = self.v*self.T[1]
 			self.goal.vel.z = 0
 
-			aD = self.d1*self.v**2 +self.d2*self.v
-			at = self.at + aD			
+
+			at = self.at 		
 			an = self.v**2*self.K
 
 			self.dK = self.dK*self.v*(self.N_wp-1)/self.L
 
-			jt = -self.v**3*self.K**2 + self.jt + (2*self.d1*self.v*self.at + self.d2*self.at)
-			jn = 2*self.K*self.v*self.at + self.v*self.K*(self.d1*self.v**2+self.d2*self.v) + self.v**2*self.dK
+			jt = -self.v**3*self.K**2 + self.jt 
+			jn = 2*self.K*self.v*self.at  + self.v**2*self.dK
 
 			# Feedforward acceleration and jerk
 			self.goal.accel.x = at*self.T[0] + an*self.N[0]  
