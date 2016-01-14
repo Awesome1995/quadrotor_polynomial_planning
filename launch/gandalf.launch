@@ -1,8 +1,8 @@
 <launch>
 
     <!-- Arguments -->
-    <arg name="v_max" default="1"/>
-    <arg name="a_max" default="2"/>
+    <arg name="v_max" default="0.3"/>
+    <arg name="a_max" default="0.5"/>
   
     <!-- Start Master Node -->
     <node name="master" pkg="splines" type="master_linear.py" output="screen" ns="FLA_ACL02"/>
