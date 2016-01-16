@@ -2,6 +2,7 @@
 import rospy
 import copy
 import numpy as np
+import rosnode
 from nav_msgs.msg import Path
 from std_msgs.msg import Float64, Float64MultiArray
 from geometry_msgs.msg import PoseStamped, Pose, TwistStamped
@@ -253,16 +254,19 @@ class master:
 			self.goal.yaw = utils.quat2yaw(self.pose.orientation)
 
 		if data.buttons[self.joyinfo.A] and self.status == NOT_FLYING:
-			self.status = FLYING
-			self.wpType = TAKEOFF
-
-			# set initial goal to current pose
-			self.goal.pos = copy.copy(self.pose.position)
-			self.goal.vel.x = self.goal.vel.y = self.goal.vel.z = 0
-			self.goal.yaw = utils.quat2yaw(self.pose.orientation)
-			self.goal.dyaw = 0
-
-			rospy.loginfo("Flying")
+			if '/rosbag_ft' in rosnode.get_node_names():
+				self.status = FLYING
+				self.wpType = TAKEOFF
+	
+				# set initial goal to current pose
+				self.goal.pos = copy.copy(self.pose.position)
+				self.goal.vel.x = self.goal.vel.y = self.goal.vel.z = 0
+				self.goal.yaw = utils.quat2yaw(self.pose.orientation)
+				self.goal.dyaw = 0
+	
+				rospy.loginfo("Flying")
+			else:
+				rospy.logerr('can\'t takeoff without logging !!  --Nick Roy')
 				
 		
 		elif self.go == True and data.buttons[self.joyinfo.Y]:
