@@ -4,7 +4,7 @@ import copy
 import numpy as np
 from nav_msgs.msg import Path
 from std_msgs.msg import Float64, Float64MultiArray
-from geometry_msgs.msg import PoseStamped, TwistStamped
+from geometry_msgs.msg import PoseStamped, Pose, TwistStamped
 from sensor_msgs.msg import Joy
 
 from acl_fsw.msg import QuadGoal
@@ -76,7 +76,7 @@ class master:
 		self.pose_sub  = rospy.Subscriber('pose', PoseStamped, self.pose_CB)
 		self.joy = rospy.Subscriber("/joy", Joy, self.joyCB)
 
-		self.pose = PoseStamped()
+		self.pose = Pose()
 		self.goal = QuadGoal()
 		self.joyinfo = JoyDef()
 
