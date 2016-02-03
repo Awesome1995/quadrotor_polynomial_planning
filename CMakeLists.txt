@@ -19,3 +19,6 @@ generate_messages( DEPENDENCIES std_msgs )
 
 
 catkin_package( CATKIN_DEPENDS message_runtime std_msgs )
+
+add_executable( polyTraj src/polyTraj.cpp )
+add_dependencies( polyTraj ${catkin_LIBRARIES} )
