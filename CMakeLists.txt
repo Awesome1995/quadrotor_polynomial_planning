@@ -32,5 +32,6 @@ add_executable( polyTraj src/polyTraj.cpp )
 target_link_libraries( polyTraj ${catkin_LIBRARIES} )
 
 add_library( poly src/poly.cpp)
+target_link_libraries(polyTraj poly)
 add_executable( polyTest tests/poly-test.cpp )
 target_link_libraries(polyTest poly)
