@@ -3,6 +3,7 @@ project(splines)
 
 find_package(catkin REQUIRED COMPONENTS
 	rospy
+	roscpp
 	std_msgs
 	geometry_msgs
 	tf
@@ -11,14 +12,25 @@ find_package(catkin REQUIRED COMPONENTS
 	nav_msgs
 	)
 
+find_package( Eigen3 REQUIRED )
+
 ## Generate messages in the 'msg' folder
 add_message_files( DIRECTORY msg FILES Coeff.msg State.msg )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages( DEPENDENCIES std_msgs )
 
-
 catkin_package( CATKIN_DEPENDS message_runtime std_msgs )
 
+include_directories ( src )
+include_directories( ${EIGEN3_INCLUDE_DIR} )
+include_directories( ${catkin_INCLUDE_DIRS} )
+include_directories(${CATKIN_DEVEL_PREFIX}/../external/pronto-distro/build/include) #for eigen_utils
+
+
 add_executable( polyTraj src/polyTraj.cpp )
-add_dependencies( polyTraj ${catkin_LIBRARIES} )
+target_link_libraries( polyTraj ${catkin_LIBRARIES} )
+
+add_library( poly src/poly.cpp)
+add_executable( polyTest tests/poly-test.cpp )
+target_link_libraries(polyTest poly)
