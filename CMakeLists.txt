@@ -7,9 +7,8 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	geometry_msgs
 	tf
-	rosbag
-	roslib
 	nav_msgs
+	message_generation
 	)
 
 find_package( Eigen3 REQUIRED )
@@ -18,9 +17,11 @@ find_package( Eigen3 REQUIRED )
 add_message_files( DIRECTORY msg FILES Coeff.msg State.msg )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages( DEPENDENCIES std_msgs )
+generate_messages( DEPENDENCIES std_msgs nav_msgs)
 
-catkin_package( CATKIN_DEPENDS message_runtime std_msgs )
+catkin_package(
+
+)
 
 include_directories ( src )
 include_directories( ${EIGEN3_INCLUDE_DIR} )

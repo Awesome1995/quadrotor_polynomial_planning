@@ -1,12 +1,18 @@
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <poly.hpp>
+#include <std_msgs/String.h>
 
 class PolyTrajNode {
 public:
 
-	PolyTrajNode(ros::NodeHandle & nh, std::string const& waypoint_topic) {
+	PolyTrajNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& samples_topic) {
 		waypoints_sub = nh.subscribe(waypoint_topic, 10, &PolyTrajNode::OnWaypoints, this);
+		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 10);
+		std::cout << "Sleeping" << std::endl;
+		sleep(2);
+		std::cout << "Done sleeping" << std::endl;
+
 	}
 
 	static Eigen::MatrixXd SamplePoly(Polynomial & poly, double t0, double tf, int num_samples) {
@@ -27,7 +33,21 @@ public:
 
 	}
 
-	void publishPath(Eigen::MatrixXd const& poly_samples) {
+	void publishPath(Eigen::MatrixXd & poly_samples) {
+
+		nav_msgs::Path poly_samples_msg;
+
+		for (int i = 0 ; i < poly_samples.cols(); i++ ) {
+			geometry_msgs::PoseStamped pose;
+			Eigen::VectorXd point = poly_samples.col(i);
+			pose.pose.position.x = point[0];
+			poly_samples_msg.poses.push_back(pose);
+		}
+
+		poly_samples_msg.header.frame_id = "map";
+		poly_samples_msg.header.stamp = ros::Time::now();
+
+		poly_samples_pub.publish(poly_samples_msg);
 
 	}
 
@@ -38,11 +58,12 @@ private:
 	}
 
 	ros::Subscriber waypoints_sub;
+	ros::Publisher poly_samples_pub;
 };
 
 
 
-void quad_traj_test() {
+Eigen::MatrixXd quad_traj_test() {
 
 	using namespace Eigen;
 
@@ -102,7 +123,7 @@ void quad_traj_test() {
 	eigen_matlab_dump(p1_unC_sparse);
 	eigen_matlab_dump(p2_unC_sparse);
 
-	PolyTrajNode::SamplePoly(p0_unC_sparse, 0, 0.75, 11);
+	return PolyTrajNode::SamplePoly(p0_unC_sparse, 0, 0.75, 101);
 
 }
 
@@ -118,9 +139,11 @@ int main(int argc, char* argv[]) {
 
 	std::cout << "Poly traj :)" << std::endl;
 
-	PolyTrajNode poly_traj_node(nh, "/waypoint_list");
+	PolyTrajNode poly_traj_node(nh, "/waypoint_list", "/poly_samples");
 
-	quad_traj_test();
+	Eigen::MatrixXd samples = quad_traj_test();
+
+	poly_traj_node.publishPath(samples);
 
 	ros::spin();
 }
