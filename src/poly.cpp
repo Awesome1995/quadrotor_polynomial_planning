@@ -10,6 +10,25 @@ double Polynomial::eval(double t)
   return val;
 }
 
+
+double Polynomial::HornersEval(double t)
+{
+
+  /*
+       We want to evaluate the polynomial in x, of coefficients CoefficientsOfPolynomial, using Horner's method.
+       The result is stored in dbResult.
+   */
+  double val = 0.0;
+  int i;
+  for(i = coeffs.rows() - 1; i >= 0; i--)
+  {
+    val = val * t + coeffs(i);
+  }
+  return val;
+
+}
+
+
 /**
  * evaluates derivative at t
  */

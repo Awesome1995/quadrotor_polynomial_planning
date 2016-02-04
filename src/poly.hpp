@@ -55,6 +55,12 @@ public:
   double eval(double t);
 
   /**
+   * evaluates the polynomial at t
+   */
+    double HornersEval(double t);
+
+
+  /**
    * evaluates derivative at t
    */
   double eval(double t, int derivative);

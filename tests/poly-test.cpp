@@ -57,18 +57,18 @@ void quad_trajectory_poly_test()
   // Often, we want our vehicle to start from rest, so we set these derivatives to be all zeros, although
   // you can set whatever initial state you want. These values become constraints in the optimization.
   VectorXd der_initial(n_derivatives_specified);
-  der_initial << 0, 0, 0, 0, 0;
+  der_initial << 0, 0, 5, 0, 0;
 
   // Here is our set of final derivatives: der_final = [position_F, velocity_F, accel_F, jerk_F, snap_F]
   // Let's say we want to end up at position_F = 1, so we set that element to 1, and if we want to end at rest,
   // then we set all the other final derivatives to zero.
   VectorXd der_final(n_derivatives_specified);
-  der_final << 1, 0, 0, 0, 0;
+  der_final << 10, 0, 0, 0, 0;
 
   // Now we specify the penalty/cost to apply to each of the derivatives.  If we set the cost coefficients as follows,
-  // we will be minimizing snap (4th derivative)
+  // we will be minimizing snap (4th derivative, so 5th in list), or jerk (3rd derivative, so 4th in list)
   VectorXd der_costs(10);
-  der_costs << 0, 0, 0, 0, 1, 0, 0, 0, 0, 0;
+  der_costs << 0, 0, 0, 1, 0, 0, 0, 0, 0, 0;
 
   // Let's say we want a sequence of 3 splines. We need to tell the optimizer how much time to spend on each segment.
   VectorXd taus(n_segments);
@@ -88,12 +88,12 @@ void quad_trajectory_poly_test()
 
   // First waypoint
   VectorXd waypoint_1(n_derivatives_specified);
-  waypoint_1 << .4, 0, 0, 0, 0; // Position of .4 for waypoint 1
+  waypoint_1 << 4, 0, 0, 0, 0; // Position of .4 for waypoint 1
   intermediate_ders.col(0) << waypoint_1;
 
   // Second waypoint
   VectorXd waypoint_2(n_derivatives_specified);
-  waypoint_2 << .5, 0, 0, 0, 0; // Position of .5 for waypoint 2
+  waypoint_2 << 5, 0, 0, 0, 0; // Position of .5 for waypoint 2
   intermediate_ders.col(1) << waypoint_2;
 
   // Return cost
@@ -115,6 +115,7 @@ void quad_trajectory_poly_test()
   eigen_matlab_dump(p1);
   eigen_matlab_dump(p2);
 
+
   // Compute the solution using the unconstrained QP formulation (Richter, Bry & Roy, ISRR 2013)
   // For this one, the solver will allocate the Polynomial object for us
   Polynomial * polys_unconstrained[3];
@@ -123,9 +124,13 @@ void quad_trajectory_poly_test()
       n_fixed);
 
   // Print the resulting coefficients to the console
-  eigen_matlab_dump(*polys_unconstrained[0]);
-  eigen_matlab_dump(*polys_unconstrained[1]);
-  eigen_matlab_dump(*polys_unconstrained[2]);
+  Polynomial p0_unC, p1_unC, p2_unC;
+  p0_unC = *polys_unconstrained[0];
+  p1_unC = *polys_unconstrained[1];
+  p2_unC = *polys_unconstrained[2];
+  eigen_matlab_dump(p0_unC);
+  eigen_matlab_dump(p1_unC);
+  eigen_matlab_dump(p2_unC);
 
   // Compute the solution using the SPARSE implementation of the unconstrained QP (Richter, Bry & Roy, ISRR 2013)
   // For this one, the solver will allocate the Polynomial object for us
@@ -136,9 +141,27 @@ void quad_trajectory_poly_test()
       opt_ders_unconstrained, opt_costs, n_fixed);
 
   // Print the resulting coefficients to the console
-  eigen_matlab_dump(*polys_unconstrained_sparse[0]);
-  eigen_matlab_dump(*polys_unconstrained_sparse[1]);
-  eigen_matlab_dump(*polys_unconstrained_sparse[2]);
+
+  Polynomial p0_unC_sparse, p1_unC_sparse, p2_unC_sparse;
+  p0_unC_sparse = *polys_unconstrained_sparse[0];
+  p1_unC_sparse = *polys_unconstrained_sparse[1];
+  p2_unC_sparse = *polys_unconstrained_sparse[2];
+  eigen_matlab_dump(p0_unC_sparse);
+  eigen_matlab_dump(p1_unC_sparse);
+  eigen_matlab_dump(p2_unC_sparse);
+
+  std::cout << p0.eval(0) << std::endl;
+  std::cout << p0.eval(0.75) << std::endl;
+  std::cout << p2.eval(1) << std::endl;
+
+  std::cout << p0_unC.eval(0) << std::endl;
+  std::cout << p0_unC.eval(0.75) << std::endl;
+  std::cout << p2_unC.eval(1) << std::endl;
+
+  std::cout << p0_unC_sparse.eval(0) << std::endl;
+  std::cout << p0_unC_sparse.eval(0.75) << std::endl;
+  std::cout << p2_unC_sparse.eval(1) << std::endl;
+
 
   // You should get the following console output:
 //  taus=[0.75

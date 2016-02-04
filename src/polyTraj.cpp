@@ -9,6 +9,28 @@ public:
 		waypoints_sub = nh.subscribe(waypoint_topic, 10, &PolyTrajNode::OnWaypoints, this);
 	}
 
+	static Eigen::MatrixXd SamplePoly(Polynomial & poly, double t0, double tf, int num_samples) {
+
+		// 1 should be dimension of polynomial
+		Eigen::MatrixXd samples (1,num_samples);
+
+		double dt = (tf - t0) / (num_samples - 1);
+		double t = 0;
+		for (int i = 0; i < num_samples; i++) {
+			t =  i * dt;
+			samples.col(i) << poly.HornersEval(t);
+			std::cout << "Time is " << t << std::endl;
+		}
+
+		std::cout << samples << std::endl;
+		return samples;
+
+	}
+
+	void publishPath(Eigen::MatrixXd const& poly_samples) {
+
+	}
+
 private:
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
@@ -68,12 +90,24 @@ void quad_traj_test() {
 	polyOptPiecewiseDersSparse(taus, der_initial, der_final, der_costs, intermediate_ders, polys_unconstrained_sparse,
 							   opt_ders_unconstrained, opt_costs, n_fixed);
 
+
+
+	Polynomial p0_unC_sparse, p1_unC_sparse, p2_unC_sparse;
+	p0_unC_sparse = *polys_unconstrained_sparse[0];
+	p1_unC_sparse = *polys_unconstrained_sparse[1];
+	p2_unC_sparse = *polys_unconstrained_sparse[2];
+
 	// Print the resulting coefficients to the console
-	eigen_matlab_dump(*polys_unconstrained_sparse[0]);
-	eigen_matlab_dump(*polys_unconstrained_sparse[1]);
-	eigen_matlab_dump(*polys_unconstrained_sparse[2]);
+	eigen_matlab_dump(p0_unC_sparse);
+	eigen_matlab_dump(p1_unC_sparse);
+	eigen_matlab_dump(p2_unC_sparse);
+
+	PolyTrajNode::SamplePoly(p0_unC_sparse, 0, 0.75, 11);
 
 }
+
+
+
 
 
 
