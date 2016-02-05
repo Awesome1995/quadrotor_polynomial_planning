@@ -9,7 +9,7 @@ from geometry_msgs.msg import PoseStamped, Pose, TwistStamped
 
 from acl_fsw.msg import QuadGoal
 from splines.msg import Coeff
-from splines.msg import FlightCommand
+from fla_msgs.msg import FlightCommand
 
 import utils
 import array_utils as au
