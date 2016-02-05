@@ -2,7 +2,7 @@
 //#include <eigen_utils/eigen_utils.hpp>
 #include <stdlib.h>
 #include <time.h>
-#include "poly.hpp"
+#include "Polynomial.hpp"
 #include <stdio.h>
 
 

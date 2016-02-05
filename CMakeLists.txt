@@ -29,10 +29,9 @@ include_directories( ${catkin_INCLUDE_DIRS} )
 include_directories(${CATKIN_DEVEL_PREFIX}/../external/pronto-distro/build/include) #for eigen_utils
 
 
-add_executable( polyTraj src/polyTraj.cpp )
+add_executable( polyTraj src/poly_traj_node.cpp)
 target_link_libraries( polyTraj ${catkin_LIBRARIES} )
 
-add_library( poly src/poly.cpp)
 target_link_libraries(polyTraj poly)
 add_executable( polyTest tests/poly-test.cpp )
 target_link_libraries(polyTest poly)

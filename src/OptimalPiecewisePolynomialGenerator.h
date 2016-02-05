@@ -1,0 +1,14 @@
+//
+// Created by peteflo on 2/5/16.
+//
+
+#ifndef SPLINES_OPTIMALPIECEWISEPOLYNOMIALGENERATOR_H
+#define SPLINES_OPTIMALPIECEWISEPOLYNOMIALGENERATOR_H
+
+
+class OptimalPiecewisePolynomialGenerator {
+
+};
+
+
+#endif //SPLINES_OPTIMALPIECEWISEPOLYNOMIALGENERATOR_H

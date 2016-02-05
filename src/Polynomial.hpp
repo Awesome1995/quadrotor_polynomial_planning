@@ -57,7 +57,7 @@ public:
   /**
    * evaluates the polynomial at t
    */
-    double HornersEval(double t);
+  double HornersEval(double t);
 
 
   /**

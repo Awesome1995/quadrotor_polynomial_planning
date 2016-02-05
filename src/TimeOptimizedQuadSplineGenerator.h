@@ -1,0 +1,14 @@
+//
+// Created by peteflo on 2/5/16.
+//
+
+#ifndef SPLINES_TIMEOPTIMIZEDQUADSPLINEGENERATOR_H
+#define SPLINES_TIMEOPTIMIZEDQUADSPLINEGENERATOR_H
+
+
+class TimeOptimizedQuadSplineGenerator {
+
+};
+
+
+#endif //SPLINES_TIMEOPTIMIZEDQUADSPLINEGENERATOR_H
