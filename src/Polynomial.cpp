@@ -1,4 +1,4 @@
-#include "poly.hpp"
+#include "Polynomial.hpp"
 #include <stdio.h>
 
 double Polynomial::eval(double t)

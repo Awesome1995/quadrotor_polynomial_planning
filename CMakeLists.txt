@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 project(splines)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -29,9 +30,17 @@ include_directories( ${catkin_INCLUDE_DIRS} )
 include_directories(${CATKIN_DEVEL_PREFIX}/../external/pronto-distro/build/include) #for eigen_utils
 
 
-add_executable( polyTraj src/poly_traj_node.cpp)
-target_link_libraries( polyTraj ${catkin_LIBRARIES} )
+add_executable( poly_traj_node src/poly_traj_node.cpp)
+target_link_libraries( poly_traj_node ${catkin_LIBRARIES} )
 
-target_link_libraries(polyTraj poly)
+add_library( Polynomial src/Polynomial.cpp)
+add_library( PolysAndQuadSplines src/PiecewisePolynomial.cpp src/QuadSpline.cpp)
+
+target_link_libraries(poly_traj_node Polynomial)
 add_executable( polyTest tests/poly-test.cpp )
-target_link_libraries(polyTest poly)
+target_link_libraries(polyTest Polynomial)
+target_link_libraries( PolysAndQuadSplines Polynomial )
+
+add_executable( ppTest tests/piecewise_poly_test.cpp )
+target_link_libraries(polyTest PolysAndQuadSplines)
+target_link_libraries( ppTest PolysAndQuadSplines)

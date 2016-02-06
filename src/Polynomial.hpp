@@ -3,7 +3,6 @@
 
 #define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
 #include <Eigen/Sparse>
-
 #include <Eigen/Dense>
 #include <iostream>
 #include <eigen_utils/eigen_numerical.hpp>
@@ -69,13 +68,13 @@ public:
    * polulates derivative_values order deterimined by derivative_values.rows().
    * 0 indicates 0th derivative - eval(t) - and so on
    */
-  template<typename Derived>
-  double eval(double t, Eigen::MatrixBase<Derived> & derivative_values)
-  {
-    for (int dd = 0; dd < derivative_values.rows(); dd++) {
-      derivative_values(dd) = this->eval(t, dd);
-    }
-  }
+//  template<typename Derived>
+//  double eval(double t, Eigen::MatrixBase<Derived> & derivative_values)
+//  {
+//    for (int dd = 0; dd < derivative_values.rows(); dd++) {
+//      derivative_values(dd) = this->eval(t, dd);
+//    }
+//  }
 
   /**
    * returns the derivative polynomial
