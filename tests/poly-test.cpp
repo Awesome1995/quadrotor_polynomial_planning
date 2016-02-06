@@ -140,6 +140,16 @@ void quad_trajectory_poly_test()
   polyOptPiecewiseDersSparse(taus, der_initial, der_final, der_costs, intermediate_ders, polys_unconstrained_sparse,
       opt_ders_unconstrained, opt_costs, n_fixed);
 
+  // new interface will be
+  // PiecewisePolynomial bestPoly;
+  // void GenerateWithFixedTimes(taus, opt_ders_unconstrained, opt_costs, bestPoly);
+  // Properties of class:
+  //  der_costs
+  //  der_initial
+  //  der_final
+  //  intermediate_ders (waypoints)
+
+
   // Print the resulting coefficients to the console
 
   Polynomial p0_unC_sparse, p1_unC_sparse, p2_unC_sparse;

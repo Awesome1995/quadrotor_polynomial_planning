@@ -32,6 +32,11 @@ void testMiddleIndex(PiecewisePolynomial& myPiecewisePolynomial) {
     assert(std::abs(time_within_segment - 0.15) < 1e-12);
 }
 
+void testHornersEval(PiecewisePolynomial& myPiecewisePolynomial) {
+    double initPosition = myPiecewisePolynomial.HornersEval(-1.0);
+    assert(std::abs(initPosition - 0.0) < 1e-12);
+}
+
 
 
 int main() {
@@ -46,6 +51,7 @@ int main() {
     testNegativeTime(myPiecewisePolynomial);
     testTooHighTime(myPiecewisePolynomial);
     testMiddleIndex(myPiecewisePolynomial);
+    testHornersEval(myPiecewisePolynomial);
 
     return 0;
 

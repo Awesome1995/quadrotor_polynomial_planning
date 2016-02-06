@@ -58,6 +58,8 @@ public:
         return taus.size();
     };
 
+    void setWithTestCoeffs();
+
 private:
     Eigen::VectorXd taus;
     Eigen::VectorXd times;

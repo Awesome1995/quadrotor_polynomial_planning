@@ -72,13 +72,7 @@ double PiecewisePolynomial::HornersEval(double t)
 
     std::size_t segment_index;
     double time_within_segment;
-    std::cout << "hey" << std::endl;
     findIndexBinarySearch(t, segment_index, time_within_segment);
-    std::cout << "hey2" << std::endl;
-    std::cout << "Index of time " << t << " is " << segment_index << std::endl;
-    std::cout << "Local time is " << time_within_segment << std::endl;
+    return polynomials.at(segment_index)->HornersEval(time_within_segment);
 
-    std::cout << "TIMES " << std::endl << times << std::endl;
-
-    return 0.0;
 }
