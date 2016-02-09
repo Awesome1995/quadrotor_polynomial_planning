@@ -13,8 +13,9 @@ typedef Eigen::Triplet<double> Trip;
 
 class Polynomial {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   Eigen::VectorXd coeffs;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 
   /**
    * default constructor, order 1 with 0 coefficient
@@ -99,6 +100,10 @@ public:
   void scaleDep(double scale)
   {
     this->coeffs *= scale;
+  }
+
+  void setCoeffs(Eigen::VectorXd const& coeffs) {
+      this->coeffs = coeffs;
   }
 
 //  void to_planning_polynomial_t(planning_polynomial_t * msg)

@@ -33,9 +33,19 @@ void testMiddleIndex(PiecewisePolynomial& myPiecewisePolynomial) {
 }
 
 void testHornersEval(PiecewisePolynomial& myPiecewisePolynomial) {
-    double initPosition = myPiecewisePolynomial.HornersEval(-1.0);
-    assert(std::abs(initPosition - 0.0) < 1e-12);
+    //double invalidPosition = myPiecewisePolynomial.HornersEval(-1.0);
+    //double initPosition = myPiecewisePolynomial.HornersEval(0.0);
+    //assert(std::abs(invalidPosition - 1.0) < 1e-12);
+    //double initPosition = myPiecewisePolynomial.HornersEval(0.0);
+    //assert(std::abs(invalidPosition - initPosition) < 1e-12);
+    //double middlePosition = myPiecewisePolynomial.HornersEval(1.0);
+    //double laterPosition = myPiecewisePolynomial.HornersEval(1.3);
+    //double endPosition = myPiecewisePolynomial.HornersEval(2.6);
+    double tooLatePosition = myPiecewisePolynomial.HornersEval(3.0);
+    //assert(std::abs(endPosition - tooLatePosition ) < 1e-12);
 }
+
+
 
 
 
@@ -48,9 +58,13 @@ int main() {
 
     PiecewisePolynomial myPiecewisePolynomial = PiecewisePolynomial(order, taus);
 
-    testNegativeTime(myPiecewisePolynomial);
-    testTooHighTime(myPiecewisePolynomial);
-    testMiddleIndex(myPiecewisePolynomial);
+    //testNegativeTime(myPiecewisePolynomial);
+    //testTooHighTime(myPiecewisePolynomial);
+    //testMiddleIndex(myPiecewisePolynomial);
+
+    Eigen::MatrixXd coeffs = Eigen::MatrixXd::Ones(order+1,taus.size());
+    myPiecewisePolynomial.setWithCoeffs(coeffs);
+
     testHornersEval(myPiecewisePolynomial);
 
     return 0;

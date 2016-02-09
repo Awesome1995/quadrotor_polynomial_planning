@@ -58,7 +58,8 @@ public:
         return taus.size();
     };
 
-    void setWithTestCoeffs();
+    void setWithCoeffs(Eigen::MatrixXd coeffs);
+
 
 private:
     Eigen::VectorXd taus;

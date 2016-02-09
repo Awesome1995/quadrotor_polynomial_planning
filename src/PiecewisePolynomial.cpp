@@ -43,23 +43,28 @@ void PiecewisePolynomial::findIndexBinarySearch(double t, size_t index_min, size
         return;
     }
     if (t > getFinalTime()) {
-        segment_index = taus.size();
+        segment_index = taus.size()-1;
         time_within_segment = taus[taus.size()-1];
+        std::cout << "after end" << std::endl;
         return;
     }
-
     else {
+        std::cout << "Right Here " << std::endl;
         int index_mid = (index_min + index_max) / 2;
 
-        if (times[index_mid] < t && t < times[index_mid+1]) {
+        if (times[index_mid] <= t && t < times[index_mid+1]) {
             segment_index = index_mid;
             time_within_segment = t - times[index_mid];
+            std::cout << "time within segment: " << time_within_segment << " and segment: " << segment_index << std::endl;
             return;
         }
         else if (times[index_mid] < t) {
+            std::cout << times[index_mid] << " and " << t << std::endl;
+            std::cout << "Greater than " << std::endl;
             findIndexBinarySearch(t, index_mid + 1, index_max, segment_index, time_within_segment);
         }
         else {
+            std::cout << "Less than " << std::endl;
             findIndexBinarySearch(t, index_min, index_mid - 1, segment_index, time_within_segment);
         }
 
@@ -70,9 +75,12 @@ void PiecewisePolynomial::findIndexBinarySearch(double t, size_t index_min, size
 double PiecewisePolynomial::HornersEval(double t)
 {
 
+    std::cout << "Evaluating for time = " << t << std::endl;
     std::size_t segment_index;
     double time_within_segment;
     findIndexBinarySearch(t, segment_index, time_within_segment);
+    std::cout << segment_index << std::endl;
+    std::cout << time_within_segment << std::endl;
     return polynomials.at(segment_index)->HornersEval(time_within_segment);
 
 }
@@ -85,4 +93,15 @@ double PiecewisePolynomial::eval(double t, int derivative)
     findIndexBinarySearch(t, segment_index, time_within_segment);
     return polynomials.at(segment_index)->eval(time_within_segment, derivative);
 
+}
+
+void PiecewisePolynomial::setWithCoeffs(Eigen::MatrixXd coeffs)
+{
+    if (coeffs.rows() != polynomials.at(0)->coeffs.size()) {
+        std::cout << "Supplied coefficients matrix doesn't match number of coefficients needed (wrong number of rows)" << std::endl; return; }
+    if (coeffs.cols() != getNumSegments()) {
+        std::cout  << "Supplied coefficients matrix doesn't match number of time segments (wrong number of columns)" << std::endl; return; }
+    for (int i = 0; i < getNumSegments(); i++) {
+        polynomials.at(i)->setCoeffs(coeffs.col(i));
+    }
 }
