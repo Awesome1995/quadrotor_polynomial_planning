@@ -44,6 +44,15 @@ void testHornersEval(PiecewisePolynomial& myPiecewisePolynomial) {
     assert(std::abs(endPosition - tooLatePosition ) < 1e-12);
 }
 
+void testEvalDerivs(PiecewisePolynomial& myPiecewisePolynomial) {
+    //std::cout << myPiecewisePolynomial.evalDerivative(0.0, 0) << std::endl <<
+    //myPiecewisePolynomial.evalDerivative(0.0, 1) << std::endl <<
+    //myPiecewisePolynomial.evalDerivative(0.0, 2) << std::endl <<
+    //myPiecewisePolynomial.evalDerivative(0.0, 3) << std::endl;
+    assert(std::abs( myPiecewisePolynomial.evalDerivative(0.0, 0) -   myPiecewisePolynomial.HornersEval(0.0)) < 1e-12);
+    assert(std::abs( myPiecewisePolynomial.evalDerivative(1.378, 0) -   myPiecewisePolynomial.HornersEval(1.378)) < 1e-12);
+}
+
 
 
 
@@ -65,6 +74,8 @@ int main() {
     myPiecewisePolynomial.setWithCoeffs(coeffs);
 
     testHornersEval(myPiecewisePolynomial);
+    testEvalDerivs(myPiecewisePolynomial);
+
 
     return 0;
 

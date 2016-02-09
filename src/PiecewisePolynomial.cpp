@@ -76,14 +76,12 @@ double PiecewisePolynomial::HornersEval(double t)
 
 }
 
-double PiecewisePolynomial::eval(double t, int derivative)
+double PiecewisePolynomial::evalDerivative(double t, int derivative)
 {
-
     std::size_t segment_index;
     double time_within_segment;
     findIndexBinarySearch(t, segment_index, time_within_segment);
     return polynomials.at(segment_index)->eval(time_within_segment, derivative);
-
 }
 
 void PiecewisePolynomial::setWithCoeffs(Eigen::MatrixXd coeffs)

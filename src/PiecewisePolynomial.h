@@ -45,7 +45,7 @@ public:
 
     double HornersEval(double t);
 
-    double eval(double t, int derivative);
+    double evalDerivative(double t, int derivative);
 
     double getFinalTime() {
         if (times.size() > 0) {
