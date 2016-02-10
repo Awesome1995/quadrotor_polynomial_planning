@@ -34,13 +34,16 @@ add_executable( poly_traj_node src/poly_traj_node.cpp)
 target_link_libraries( poly_traj_node ${catkin_LIBRARIES} )
 
 add_library( Polynomial src/Polynomial.cpp)
-add_library( PolysAndQuadSplines src/PiecewisePolynomial.cpp src/QuadSpline.cpp)
+add_library( PolysAndQuadSplines src/PiecewisePolynomial.cpp src/QuadSpline.cpp src/OptimalPiecewisePolynomialGenerator.cpp)
 
 target_link_libraries(poly_traj_node Polynomial)
 add_executable( polyTest tests/poly-test.cpp )
 target_link_libraries(polyTest Polynomial)
+target_link_libraries(polyTest PolysAndQuadSplines)
 target_link_libraries( PolysAndQuadSplines Polynomial )
 
 add_executable( ppTest tests/piecewise_poly_test.cpp )
-target_link_libraries(polyTest PolysAndQuadSplines)
 target_link_libraries( ppTest PolysAndQuadSplines)
+
+add_executable( OptimalPpTest tests/OptimalPiecewise_test.cpp )
+target_link_libraries( OptimalPpTest PolysAndQuadSplines)

@@ -6,8 +6,6 @@
 #include "PiecewisePolynomial.h"
 
 
-
-
 void testNegativeTime(PiecewisePolynomial& myPiecewisePolynomial) {
     std::size_t segment_index;
     double time_within_segment;
@@ -53,10 +51,6 @@ void testEvalDerivs(PiecewisePolynomial& myPiecewisePolynomial) {
     assert(std::abs( myPiecewisePolynomial.evalDerivative(1.378, 0) -   myPiecewisePolynomial.HornersEval(1.378)) < 1e-12);
 }
 
-
-
-
-
 int main() {
     std::cout << "Testing Piecewise Polynomial Class" << std::endl;
 
@@ -76,7 +70,5 @@ int main() {
     testHornersEval(myPiecewisePolynomial);
     testEvalDerivs(myPiecewisePolynomial);
 
-
     return 0;
-
 }
