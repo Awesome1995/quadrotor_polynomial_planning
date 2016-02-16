@@ -46,12 +46,12 @@ Eigen::VectorXd TimeOptimizedQuadSplineGenerator::numericalGradient(Eigen::Vecto
         taus_minus(i) = taus_minus(i) - 1/2.0*dx;
 
         OptimalPiecewisePolynomial plus_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus_plus);
-        double cost_plus = plus_optimal_piecewise_poly.costs.sum();
+        double cost_plus = plus_optimal_piecewise_poly.costs.sum() + k_T*taus_plus.sum();
 
         OptimalPiecewisePolynomial minus_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus_minus);
-        double cost_minus = minus_optimal_piecewise_poly.costs.sum();
+        double cost_minus = minus_optimal_piecewise_poly.costs.sum() + k_T*taus_minus.sum();
 
-        grad(i) = 1.0 / dx * (cost_plus - cost_minus) + k_T;
+        grad(i) = 1.0 / dx * (cost_plus - cost_minus);
 
         // reset taus_plus and taus_minus
         taus_plus = current_taus * 1.0;
