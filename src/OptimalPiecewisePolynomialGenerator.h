@@ -11,7 +11,7 @@
 class OptimalPiecewisePolynomialGenerator {
 public:
 
-    void setUpOptimization();
+    void setUpOptimization(int n_segments);
     PiecewisePolynomial GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus);
 
 

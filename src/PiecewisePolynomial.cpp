@@ -24,23 +24,27 @@ PiecewisePolynomial::PiecewisePolynomial(int order, int n_segments) : taus(n_seg
      */
 PiecewisePolynomial::PiecewisePolynomial(int order, Eigen::VectorXd taus): times(taus.size() + 1)
 {
-    this->taus = taus;
-    times[0] = 0.0;
-    for (int i = 1; i <= taus.size(); i++) {
-        times[i] = times[i-1] + taus[i-1];
-    }
+    initializeTausAndTimes(taus);
     for (int i = 0; i < taus.size(); i++) {
         polynomials.push_back(std::shared_ptr<Polynomial>(new Polynomial(order)));
     }
 }
 
 PiecewisePolynomial::PiecewisePolynomial(std::vector<std::shared_ptr<Polynomial>> const& polys, Eigen::VectorXd taus) {
+    initializeTausAndTimes(taus);
     for (int i = 0; i < polys.size(); i++) {
         polynomials.push_back(polys[i]);
     }
-    this->taus = taus;
 }
 
+void PiecewisePolynomial::initializeTausAndTimes(Eigen::VectorXd const& taus) {
+    this->taus = taus;
+    times = Eigen::VectorXd(taus.size() + 1);
+    times[0] = 0.0;
+    for (int i = 1; i <= this->taus.size(); i++) {
+        times[i] = times[i-1] + this->taus[i-1];
+    }
+}
 
 void PiecewisePolynomial::findIndexBinarySearch(double t, size_t index_min, size_t index_max, size_t &segment_index,
                                                 double &time_within_segment)

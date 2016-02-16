@@ -4,12 +4,8 @@
 
 #include "OptimalPiecewisePolynomialGenerator.h"
 
-void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
-    n_segments = 3;
-
-    taus = Eigen::VectorXd(n_segments);
-    taus << 0.75, 0.5, 1;
-
+void OptimalPiecewisePolynomialGenerator::setUpOptimization(int n_segments){
+    this->n_segments = n_segments;
     initializeOptimizationCriteria();
 
     setInitialPositionConstraint(0.0);
@@ -22,9 +18,6 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
 
     setPositionWaypoints();
     setHigherOrderDerivativeWaypoints();
-
-    PiecewisePolynomial optimal_piecewise_polynomial = GenerateWithFixedTimeSegments(taus);
-
 }
 
 void OptimalPiecewisePolynomialGenerator::initializeOptimizationCriteria() {
@@ -97,12 +90,6 @@ PiecewisePolynomial OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSe
     }
 
     PiecewisePolynomial optimal_piecewise_poly = PiecewisePolynomial(shared_polys, taus);
-
-    std::cout << optimal_piecewise_poly.eval(0) << std::endl;
-//    std::cout << optimal_piecewise_poly.eval(0.75) << std::endl;
-//    std::cout << optimal_piecewise_poly.eval(1) << std::endl;
-
-//    PiecewisePolynomial optimal_piecewise_poly = PiecewisePolynomial(1, taus);
 
     return optimal_piecewise_poly;
 

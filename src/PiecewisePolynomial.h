@@ -37,6 +37,8 @@ public:
 
     PiecewisePolynomial(std::vector<std::shared_ptr <Polynomial>> const& polys, Eigen::VectorXd taus);
 
+    void initializeTausAndTimes(Eigen::VectorXd const& taus);
+
     double eval(double t) {
         return HornersEval(t);
     };
