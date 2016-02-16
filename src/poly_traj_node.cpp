@@ -26,7 +26,7 @@ public:
 		for (int i = 0; i < num_samples; i++) {
 			t =  i * dt;
 			samples.col(i) << poly.HornersEval(t);
-			std::cout << "Time is " << t << std::endl;
+			//std::cout << "Time is " << t << std::endl;
 		}
 
 		std::cout << samples << std::endl;
@@ -177,16 +177,16 @@ Eigen::MatrixXd quad_traj_test_3d() {
 
 
 int main(int argc, char* argv[]) {
-	ros::init(argc, argv, "polyTraj_node");
-	ros::NodeHandle nh;
+	//ros::init(argc, argv, "polyTraj_node");
+	//ros::NodeHandle nh;
 
 	std::cout << "Poly traj :)" << std::endl;
 
-	PolyTrajNode poly_traj_node(nh, "/waypoint_list", "/poly_samples");
+	//PolyTrajNode poly_traj_node(nh, "/waypoint_list", "/poly_samples");
 
 	Eigen::MatrixXd samples = quad_traj_test();
 
-	poly_traj_node.publishOdomPoints(samples);
+	//poly_traj_node.publishOdomPoints(samples);
 
-	ros::spin();
+	//ros::spin();
 }

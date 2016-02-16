@@ -15,9 +15,9 @@ public:
 
     void GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,
                                     const Eigen::VectorXd & der_final, const Eigen::VectorXd & der_costs, const Eigen::MatrixXd & intermediate_der,
-                                    Polynomial * polys[], Eigen::MatrixXd & opt_ders, Eigen::VectorXd & costs, int intermediate_ders_fixed = 0) {
-            std::cout << "You're calling me " << std::endl;
-    };
+                                    Polynomial * polys[], Eigen::MatrixXd & opt_ders, Eigen::VectorXd & costs, int intermediate_ders_fixed = 0);
+    void setInitialPositionConstrains(const Eigen::VectorXd & initial_derivatives);
+
 
 private:
     int n_segments;
