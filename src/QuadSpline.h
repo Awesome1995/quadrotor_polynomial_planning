@@ -10,7 +10,7 @@
 
 class QuadSpline {
 
-private:
+public:
     OptimalPiecewisePolynomial x_piecewise_poly;
     OptimalPiecewisePolynomial y_piecewise_poly;
     OptimalPiecewisePolynomial z_piecewise_poly;

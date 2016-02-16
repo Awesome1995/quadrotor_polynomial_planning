@@ -18,17 +18,26 @@ OptimalPiecewisePolynomial TimeOptimizedQuadSplineGenerator::GenerateTimeOptimiz
     std::cout << "INITIAL TAUS " << initial_taus << std::endl;
     std::cout << "COSTS " << initial_optimal_piecewise_poly.costs << std::endl;
     std::cout << "SUM OF COSTS " << initial_optimal_piecewise_poly.costs.sum() << std::endl;
+    OptimalPiecewisePolynomial current_optimal_piecewise_poly;
+    Eigen::VectorXd current_taus = initial_taus;
 
-    // Find numerical gradient
-    Eigen::VectorXd current_gradient = numericalGradient(initial_taus);
+    for (int i = 0; i < 1000; i++) {
+        // Find numerical gradient
+        Eigen::VectorXd current_gradient = numericalGradient(current_taus);
 
-    // Take gradient descent step
-    Eigen::VectorXd next_taus = oneStepGradientDescent(initial_taus, current_gradient);
+        // Take gradient descent step
+        Eigen::VectorXd next_taus = oneStepGradientDescent(current_taus, current_gradient);
 
-    std::cout << "NEXT TAUS " << next_taus << std::endl;
+        current_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(next_taus);
 
-    OptimalPiecewisePolynomial final_optimal_piecewise_poly = initial_optimal_piecewise_poly;
-    return final_optimal_piecewise_poly;
+        current_taus = next_taus;
+    }
+
+    std::cout << "FINAL TAUS " << current_taus << std::endl;
+    std::cout << "COSTS " << current_optimal_piecewise_poly.costs << std::endl;
+    std::cout << "SUM OF COSTS " << current_optimal_piecewise_poly.costs.sum() << std::endl;
+
+    return current_optimal_piecewise_poly;
 
 }
 
@@ -58,18 +67,18 @@ Eigen::VectorXd TimeOptimizedQuadSplineGenerator::numericalGradient(Eigen::Vecto
         taus_minus = current_taus * 1.0;
     }
 
-    std::cout << "GRAD " << grad << std::endl;
+    //std::cout << "GRAD " << grad << std::endl;
 
     return grad;
 }
 
 Eigen::VectorXd TimeOptimizedQuadSplineGenerator::oneStepGradientDescent(Eigen::VectorXd current_taus, Eigen::VectorXd current_gradient) {
-    double stepSize = 0.000001;
+    double stepSize = 0.00000001;
     Eigen::VectorXd next_taus;
     next_taus = current_taus - stepSize * current_gradient;
 
-    std::cout << "CURRENT TAUS " << current_taus << std::endl;
-    std::cout << "NEXT TAUS " << next_taus << std::endl;
+    //std::cout << "CURRENT TAUS " << current_taus << std::endl;
+    //std::cout << "NEXT TAUS " << next_taus << std::endl;
 
     return next_taus;
 
