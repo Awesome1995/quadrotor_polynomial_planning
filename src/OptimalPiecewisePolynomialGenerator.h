@@ -47,9 +47,13 @@ private:
     Eigen::VectorXd taus;
     int n_fixed;
 
+    Eigen::VectorXd position_waypoints;
     Eigen::MatrixXd intermediate_derivatives;
-    Eigen::VectorXd waypoint_1;
-    Eigen::VectorXd waypoint_2;
+    Eigen::VectorXd waypoint;
+
+    Eigen::MatrixXd optimal_derivatives; // Optimal derivatives
+    Eigen::VectorXd optimal_costs; // Return costs for each segment
+
     double cost;
 
 

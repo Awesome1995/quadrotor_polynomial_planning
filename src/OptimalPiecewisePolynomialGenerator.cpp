@@ -6,7 +6,6 @@
 
 void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
     n_segments = 3;
-    n_derivatives_specified = 5;
 
     taus = Eigen::VectorXd(n_segments);
     taus << 0.75, 0.5, 1;
@@ -25,11 +24,9 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
     setHigherOrderDerivativeWaypoints();
 
     Polynomial * polys_unconstrained_sparse[3];
-    Eigen::MatrixXd opt_ders_unconstrained; // Optimal derivatives
-    Eigen::VectorXd opt_costs; // Return costs for each segment
 
     GenerateWithFixedTimeSegments(taus, initial_derivatives, final_derivatives, derivatives_to_minimize, intermediate_derivatives, polys_unconstrained_sparse,
-                               opt_ders_unconstrained, opt_costs, n_fixed);
+                               optimal_derivatives, optimal_costs, n_fixed);
 
     Polynomial p0_unC_sparse, p1_unC_sparse, p2_unC_sparse;
 
@@ -44,6 +41,8 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
 }
 
 void OptimalPiecewisePolynomialGenerator::setOptimizationCriteria() {
+    n_derivatives_specified = 5;
+
     derivatives_to_minimize = Eigen::VectorXd(10);
     // Choose coefficients for the derivatives to minimize in the optimization
     // Zero-ordered index, so index=3 (fourth in list) is jerk
@@ -85,25 +84,19 @@ void OptimalPiecewisePolynomialGenerator::setFinalHigherOrderDerivativeConstrain
 
 
 void OptimalPiecewisePolynomialGenerator::setPositionWaypoints() {
-    std::cout << "nothing yet" << std::endl;
+    position_waypoints = Eigen::VectorXd(n_segments - 1);
+    position_waypoints << 4, 5;
 }
 
 void OptimalPiecewisePolynomialGenerator::setHigherOrderDerivativeWaypoints() {
     n_fixed = 1;
     intermediate_derivatives = Eigen::MatrixXd(n_derivatives_specified, n_segments - 1);
-
-    waypoint_1 = Eigen::VectorXd(n_derivatives_specified);
-    waypoint_1 << 4, 0, 0, 0, 0; // Position of .4 for waypoint 1
-    intermediate_derivatives.col(0) << waypoint_1;
-
-    waypoint_2 = Eigen::VectorXd(n_derivatives_specified);
-    waypoint_2 << 5, 0, 0, 0, 0; // Position of .5 for waypoint 2
-    intermediate_derivatives.col(1) << waypoint_2;
-
+    waypoint = Eigen::VectorXd(n_derivatives_specified);
+    for (int i = 0; i < n_segments - 1; i++) {
+        waypoint <<  position_waypoints(i), 0, 0, 0, 0; // Position of .4 for waypoint 1
+        intermediate_derivatives.col(i) << waypoint;
+    }
 }
-
-
-
 
 
 void OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,
