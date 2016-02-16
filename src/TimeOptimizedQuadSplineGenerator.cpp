@@ -5,6 +5,7 @@
 #include "TimeOptimizedQuadSplineGenerator.h"
 
 OptimalPiecewisePolynomial TimeOptimizedQuadSplineGenerator::GenerateTimeOptimized() {
+    k_T = 10000.0;  // k_T is the proportional cost on time, as explained in Richter et al 2013, ISRR
 
     // Set up optimization for optimal piecewise polynomial generator
     n_segments = 3;
@@ -25,7 +26,6 @@ OptimalPiecewisePolynomial TimeOptimizedQuadSplineGenerator::GenerateTimeOptimiz
     Eigen::VectorXd next_taus = oneStepGradientDescent(initial_taus, current_gradient);
 
     std::cout << "NEXT TAUS " << next_taus << std::endl;
-
 
     OptimalPiecewisePolynomial final_optimal_piecewise_poly = initial_optimal_piecewise_poly;
     return final_optimal_piecewise_poly;
@@ -51,7 +51,7 @@ Eigen::VectorXd TimeOptimizedQuadSplineGenerator::numericalGradient(Eigen::Vecto
         OptimalPiecewisePolynomial minus_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus_minus);
         double cost_minus = minus_optimal_piecewise_poly.costs.sum();
 
-        grad(i) = 1.0 / dx * (cost_plus - cost_minus);
+        grad(i) = 1.0 / dx * (cost_plus - cost_minus) + k_T;
 
         // reset taus_plus and taus_minus
         taus_plus = current_taus * 1.0;
@@ -64,7 +64,7 @@ Eigen::VectorXd TimeOptimizedQuadSplineGenerator::numericalGradient(Eigen::Vecto
 }
 
 Eigen::VectorXd TimeOptimizedQuadSplineGenerator::oneStepGradientDescent(Eigen::VectorXd current_taus, Eigen::VectorXd current_gradient) {
-    double stepSize = 0.00001;
+    double stepSize = 0.000001;
     Eigen::VectorXd next_taus;
     next_taus = current_taus - stepSize * current_gradient;
 

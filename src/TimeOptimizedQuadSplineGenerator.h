@@ -16,6 +16,7 @@ private:
     Eigen::VectorXd numericalGradient(Eigen::VectorXd current_taus);
     Eigen::VectorXd oneStepGradientDescent(Eigen::VectorXd current_taus, Eigen::VectorXd current_gradient);
 
+    double k_T;
     OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;
     int n_segments;
     Eigen::VectorXd taus;
