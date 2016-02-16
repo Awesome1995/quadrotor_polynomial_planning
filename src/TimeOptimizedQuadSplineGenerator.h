@@ -13,6 +13,8 @@ public:
     OptimalPiecewisePolynomial GenerateTimeOptimized();
 
 private:
+    Eigen::VectorXd numericalGradient(Eigen::VectorXd current_taus);
+
     OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;
     int n_segments;
     Eigen::VectorXd taus;
