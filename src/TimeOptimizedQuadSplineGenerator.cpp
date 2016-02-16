@@ -14,10 +14,17 @@ OptimalPiecewisePolynomial TimeOptimizedQuadSplineGenerator::GenerateTimeOptimiz
     Eigen::VectorXd initial_taus = Eigen::VectorXd(n_segments);
     initial_taus << 0.75, 0.5, 1;
     OptimalPiecewisePolynomial initial_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(initial_taus);
+    std::cout << "INITIAL TAUS " << initial_taus << std::endl;
     std::cout << "COSTS " << initial_optimal_piecewise_poly.costs << std::endl;
+    std::cout << "SUM OF COSTS " << initial_optimal_piecewise_poly.costs.sum() << std::endl;
 
     // Find numerical gradient
-    numericalGradient(initial_taus);
+    Eigen::VectorXd current_gradient = numericalGradient(initial_taus);
+
+    // Take gradient descent step
+    Eigen::VectorXd next_taus = oneStepGradientDescent(initial_taus, current_gradient);
+
+    std::cout << "NEXT TAUS " << next_taus << std::endl;
 
 
     OptimalPiecewisePolynomial final_optimal_piecewise_poly = initial_optimal_piecewise_poly;
@@ -50,9 +57,21 @@ Eigen::VectorXd TimeOptimizedQuadSplineGenerator::numericalGradient(Eigen::Vecto
         taus_plus = current_taus * 1.0;
         taus_minus = current_taus * 1.0;
     }
-    
+
     std::cout << "GRAD " << grad << std::endl;
 
     return grad;
+}
+
+Eigen::VectorXd TimeOptimizedQuadSplineGenerator::oneStepGradientDescent(Eigen::VectorXd current_taus, Eigen::VectorXd current_gradient) {
+    double stepSize = 0.00001;
+    Eigen::VectorXd next_taus;
+    next_taus = current_taus - stepSize * current_gradient;
+
+    std::cout << "CURRENT TAUS " << current_taus << std::endl;
+    std::cout << "NEXT TAUS " << next_taus << std::endl;
+
+    return next_taus;
+
 }
 
