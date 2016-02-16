@@ -8,6 +8,12 @@
 
 class TimeOptimizedQuadSplineGenerator {
 
+    OptimalPiecewisePolynomial GenerateTimeOptimized();
+
+private:
+    OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;
+    int n_segments;
+    Eigen::VectorXd taus;
 };
 
 

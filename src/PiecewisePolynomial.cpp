@@ -22,7 +22,7 @@ PiecewisePolynomial::PiecewisePolynomial(int order, int n_segments) : taus(n_seg
 /**
      * constructor with specified order and specified vector of time segments (taus)
      */
-PiecewisePolynomial::PiecewisePolynomial(int order, Eigen::VectorXd taus): times(taus.size() + 1)
+PiecewisePolynomial::PiecewisePolynomial(int order, Eigen::VectorXd taus)
 {
     initializeTausAndTimes(taus);
     for (int i = 0; i < taus.size(); i++) {

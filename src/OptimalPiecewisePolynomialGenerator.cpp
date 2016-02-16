@@ -78,7 +78,7 @@ void OptimalPiecewisePolynomialGenerator::setHigherOrderDerivativeWaypoints() {
     }
 }
 
-PiecewisePolynomial OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus) {
+OptimalPiecewisePolynomial OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus) {
 
     Polynomial * polys_unconstrained_sparse[n_segments];
     GenerateWithFixedTimeSegments(taus, initial_derivatives, final_derivatives, derivatives_to_minimize, intermediate_derivatives, polys_unconstrained_sparse,
@@ -89,7 +89,9 @@ PiecewisePolynomial OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSe
         shared_polys.push_back(std::shared_ptr<Polynomial> (polys_unconstrained_sparse[i]));
     }
 
-    PiecewisePolynomial optimal_piecewise_poly = PiecewisePolynomial(shared_polys, taus);
+    OptimalPiecewisePolynomial optimal_piecewise_poly;
+    optimal_piecewise_poly.piecewise_poly = PiecewisePolynomial(shared_polys, taus);
+    optimal_piecewise_poly.costs = optimal_costs;
 
     return optimal_piecewise_poly;
 

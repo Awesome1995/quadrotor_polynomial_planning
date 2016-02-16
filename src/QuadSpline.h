@@ -6,8 +6,15 @@
 #define SPLINES_QUADSPLINE_H
 
 
+#include "OptimalPiecewisePolynomialGenerator.h"
+
 class QuadSpline {
 
+private:
+    OptimalPiecewisePolynomial x_piecewise_poly;
+    OptimalPiecewisePolynomial y_piecewise_poly;
+    OptimalPiecewisePolynomial z_piecewise_poly;
+    OptimalPiecewisePolynomial yaw_piecewise_poly;
 };
 
 

@@ -13,14 +13,16 @@ void testOptimalPiecewise(OptimalPiecewisePolynomialGenerator& my_optimal_piecew
     Eigen::VectorXd taus = Eigen::VectorXd(n_segments);
     taus << 0.75, 0.5, 1;
 
-    PiecewisePolynomial optimal_piecewise_poly = my_optimal_piecewise_poly_generator.GenerateWithFixedTimeSegments(taus);
+    OptimalPiecewisePolynomial optimal_piecewise_poly = my_optimal_piecewise_poly_generator.GenerateWithFixedTimeSegments(taus);
 
-    std::cout << optimal_piecewise_poly.eval(-1) << std::endl;
-    std::cout << optimal_piecewise_poly.eval(0) << std::endl;
-    std::cout << optimal_piecewise_poly.eval(0.75) << std::endl;
-    std::cout << optimal_piecewise_poly.eval(1) << std::endl;
-    std::cout << optimal_piecewise_poly.eval(100) << std::endl;
-    std::cout << optimal_piecewise_poly.eval(1000) << std::endl;
+    std::cout << optimal_piecewise_poly.piecewise_poly.eval(-1) << std::endl;
+    std::cout << optimal_piecewise_poly.piecewise_poly.eval(0) << std::endl;
+    std::cout << optimal_piecewise_poly.piecewise_poly.eval(0.75) << std::endl;
+    std::cout << optimal_piecewise_poly.piecewise_poly.eval(1) << std::endl;
+    std::cout << optimal_piecewise_poly.piecewise_poly.eval(100) << std::endl;
+    std::cout << optimal_piecewise_poly.piecewise_poly.eval(1000) << std::endl;
+
+    std::cout << "COSTS " << optimal_piecewise_poly.costs << std::endl;
 }
 
 int main() {

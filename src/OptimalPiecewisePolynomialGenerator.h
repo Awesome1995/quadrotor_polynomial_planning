@@ -7,12 +7,17 @@
 
 #include "PiecewisePolynomial.h"
 
+struct OptimalPiecewisePolynomial {
+    PiecewisePolynomial piecewise_poly;
+    Eigen::VectorXd costs;
+};
+
 
 class OptimalPiecewisePolynomialGenerator {
 public:
 
     void setUpOptimization(int n_segments);
-    PiecewisePolynomial GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus);
+    OptimalPiecewisePolynomial GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus);
 
 
 
