@@ -17,6 +17,8 @@ public:
                                     const Eigen::VectorXd & der_final, const Eigen::VectorXd & der_costs, const Eigen::MatrixXd & intermediate_der,
                                     Polynomial * polys[], Eigen::MatrixXd & opt_ders, Eigen::VectorXd & costs, int intermediate_ders_fixed = 0);
 
+    void setOptimizationCriteria();
+
     void setInitialPositionConstraint(const double initial_position);
     void setInitialVelocityConstraint(const double initial_velocity);
     void setInitialHigherOrderDerivativeConstraints();
@@ -24,6 +26,9 @@ public:
     void setFinalPositionConstraint(const double initial_position);
     void setFinalVelocityConstraint(const double initial_velocity);
     void setFinalHigherOrderDerivativeConstraints();
+
+    void setPositionWaypoints();
+    void setHigherOrderDerivativeWaypoints();
 
 
 private:
@@ -38,10 +43,11 @@ private:
     double final_velocity;
     Eigen::VectorXd final_derivatives;
 
-    Eigen::VectorXd der_costs;
+    Eigen::VectorXd derivatives_to_minimize;
     Eigen::VectorXd taus;
     int n_fixed;
-    Eigen::MatrixXd intermediate_ders;
+
+    Eigen::MatrixXd intermediate_derivatives;
     Eigen::VectorXd waypoint_1;
     Eigen::VectorXd waypoint_2;
     double cost;
