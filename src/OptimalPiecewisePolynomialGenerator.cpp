@@ -10,37 +10,24 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
     taus = Eigen::VectorXd(n_segments);
     taus << 0.75, 0.5, 1;
 
-    setOptimizationCriteria();
+    initializeOptimizationCriteria();
 
     setInitialPositionConstraint(0.0);
     setInitialVelocityConstraint(0.0);
-    setInitialHigherOrderDerivativeConstraints();
+    initializeInitialHigherOrderDerivativeConstraints();
 
     setFinalPositionConstraint(10.0);
     setFinalVelocityConstraint(0.0);
-    setFinalHigherOrderDerivativeConstraints();
+    initializeFinalHigherOrderDerivativeConstraints();
 
     setPositionWaypoints();
     setHigherOrderDerivativeWaypoints();
 
-    Polynomial * polys_unconstrained_sparse[3];
-
-    GenerateWithFixedTimeSegments(taus, initial_derivatives, final_derivatives, derivatives_to_minimize, intermediate_derivatives, polys_unconstrained_sparse,
-                               optimal_derivatives, optimal_costs, n_fixed);
-
-    Polynomial p0_unC_sparse, p1_unC_sparse, p2_unC_sparse;
-
-    p0_unC_sparse = *polys_unconstrained_sparse[0];
-    p1_unC_sparse = *polys_unconstrained_sparse[1];
-    p2_unC_sparse = *polys_unconstrained_sparse[2];
-
-    std::cout << p0_unC_sparse.eval(0) << std::endl;
-    std::cout << p0_unC_sparse.eval(0.75) << std::endl;
-    std::cout << p2_unC_sparse.eval(1) << std::endl;
+    PiecewisePolynomial optimal_piecewise_polynomial = GenerateWithFixedTimeSegments(taus);
 
 }
 
-void OptimalPiecewisePolynomialGenerator::setOptimizationCriteria() {
+void OptimalPiecewisePolynomialGenerator::initializeOptimizationCriteria() {
     n_derivatives_specified = 5;
 
     derivatives_to_minimize = Eigen::VectorXd(10);
@@ -60,7 +47,7 @@ void OptimalPiecewisePolynomialGenerator::setInitialVelocityConstraint(const dou
     this->initial_velocity = initial_velocity;
 }
 
-void OptimalPiecewisePolynomialGenerator::setInitialHigherOrderDerivativeConstraints() {
+void OptimalPiecewisePolynomialGenerator::initializeInitialHigherOrderDerivativeConstraints() {
     initial_derivatives = Eigen::VectorXd(n_derivatives_specified);
     initial_derivatives << initial_position, initial_velocity, 0, 0, 0;
 }
@@ -77,7 +64,7 @@ void OptimalPiecewisePolynomialGenerator::setFinalVelocityConstraint(const doubl
     this->final_velocity = final_velocity;
 }
 
-void OptimalPiecewisePolynomialGenerator::setFinalHigherOrderDerivativeConstraints() {
+void OptimalPiecewisePolynomialGenerator::initializeFinalHigherOrderDerivativeConstraints() {
     final_derivatives = Eigen::VectorXd(n_derivatives_specified);
     final_derivatives << final_position, final_velocity, 0, 0, 0;
 }
@@ -96,6 +83,31 @@ void OptimalPiecewisePolynomialGenerator::setHigherOrderDerivativeWaypoints() {
         waypoint <<  position_waypoints(i), 0, 0, 0, 0; // Position of .4 for waypoint 1
         intermediate_derivatives.col(i) << waypoint;
     }
+}
+
+PiecewisePolynomial OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus) {
+
+    Polynomial * polys_unconstrained_sparse[3];
+
+    GenerateWithFixedTimeSegments(taus, initial_derivatives, final_derivatives, derivatives_to_minimize, intermediate_derivatives, polys_unconstrained_sparse,
+                                  optimal_derivatives, optimal_costs, n_fixed);
+
+    Polynomial p0_unC_sparse, p1_unC_sparse, p2_unC_sparse;
+
+    p0_unC_sparse = *polys_unconstrained_sparse[0];
+    p1_unC_sparse = *polys_unconstrained_sparse[1];
+    p2_unC_sparse = *polys_unconstrained_sparse[2];
+
+    std::cout << p0_unC_sparse.eval(0) << std::endl;
+    std::cout << p0_unC_sparse.eval(0.75) << std::endl;
+    std::cout << p2_unC_sparse.eval(1) << std::endl;
+
+    int order = 5;
+    Eigen::VectorXd taus2(7);
+    taus2 << 0.25, 0.5, 0.25, 0.1, 0.3, 0.4, 0.8;
+    PiecewisePolynomial myPiecewisePolynomial = PiecewisePolynomial(order, taus2);
+    return myPiecewisePolynomial;
+
 }
 
 
@@ -296,11 +308,9 @@ void OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSegments(const Ei
     }
 //  *cost = cost_total;
 
+
+
 }
-
-
-
-
 
 
 void polyQaudDerOptPiecewiseIndexMap(int N_extra_constraints, int D, int N_poly, int K,
@@ -625,13 +635,6 @@ void polyOptPiecewiseDers(const Eigen::VectorXd & taus, const Eigen::VectorXd & 
     }
     *cost = cost_total;
 }
-
-
-
-
-
-
-
 
 
 Polynomial polyQuadDerOpt(double tau, const Eigen::VectorXd & der_0, const Eigen::VectorXd & der_final,

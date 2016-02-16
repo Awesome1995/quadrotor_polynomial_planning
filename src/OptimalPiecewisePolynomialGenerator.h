@@ -12,26 +12,30 @@ class OptimalPiecewisePolynomialGenerator {
 public:
 
     void setUpOptimization();
+    PiecewisePolynomial GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus);
 
-    void GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,
-                                    const Eigen::VectorXd & der_final, const Eigen::VectorXd & der_costs, const Eigen::MatrixXd & intermediate_der,
-                                    Polynomial * polys[], Eigen::MatrixXd & opt_ders, Eigen::VectorXd & costs, int intermediate_ders_fixed = 0);
 
-    void setOptimizationCriteria();
+
+private:
+
+    void initializeOptimizationCriteria();
 
     void setInitialPositionConstraint(const double initial_position);
     void setInitialVelocityConstraint(const double initial_velocity);
-    void setInitialHigherOrderDerivativeConstraints();
+    void initializeInitialHigherOrderDerivativeConstraints();
 
     void setFinalPositionConstraint(const double initial_position);
     void setFinalVelocityConstraint(const double initial_velocity);
-    void setFinalHigherOrderDerivativeConstraints();
+    void initializeFinalHigherOrderDerivativeConstraints();
 
     void setPositionWaypoints();
     void setHigherOrderDerivativeWaypoints();
 
+    void GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,
+                                       const Eigen::VectorXd & der_final, const Eigen::VectorXd & der_costs, const Eigen::MatrixXd & intermediate_der,
+                                       Polynomial * polys[], Eigen::MatrixXd & opt_ders, Eigen::VectorXd & costs, int intermediate_ders_fixed = 0);
 
-private:
+
     int n_segments;
     int n_derivatives_specified;
 
