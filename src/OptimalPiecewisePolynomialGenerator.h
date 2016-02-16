@@ -16,9 +16,14 @@ public:
     void GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,
                                     const Eigen::VectorXd & der_final, const Eigen::VectorXd & der_costs, const Eigen::MatrixXd & intermediate_der,
                                     Polynomial * polys[], Eigen::MatrixXd & opt_ders, Eigen::VectorXd & costs, int intermediate_ders_fixed = 0);
+
     void setInitialPositionConstraint(const double initial_position);
     void setInitialVelocityConstraint(const double initial_velocity);
     void setInitialHigherOrderDerivativeConstraints();
+
+    void setFinalPositionConstraint(const double initial_position);
+    void setFinalVelocityConstraint(const double initial_velocity);
+    void setFinalHigherOrderDerivativeConstraints();
 
 
 private:
@@ -29,7 +34,10 @@ private:
     double initial_velocity;
     Eigen::VectorXd initial_derivatives;
 
-    Eigen::VectorXd der_final;
+    double final_position;
+    double final_velocity;
+    Eigen::VectorXd final_derivatives;
+
     Eigen::VectorXd der_costs;
     Eigen::VectorXd taus;
     int n_fixed;

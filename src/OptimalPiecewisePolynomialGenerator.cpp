@@ -8,14 +8,14 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
     n_segments = 3;
     n_derivatives_specified = 5;
 
-
-
     setInitialPositionConstraint(0.0);
     setInitialVelocityConstraint(0.0);
     setInitialHigherOrderDerivativeConstraints();
 
-    der_final = Eigen::VectorXd(n_derivatives_specified);
-    der_final << 10, 0, 0, 0, 0;
+    setFinalPositionConstraint(10.0);
+    setFinalVelocityConstraint(0.0);
+    setFinalHigherOrderDerivativeConstraints();
+
     der_costs = Eigen::VectorXd(10);
     der_costs << 0, 0, 0, 1, 0, 0, 0, 0, 0, 0;
     taus = Eigen::VectorXd(n_segments);
@@ -35,7 +35,7 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
     Eigen::MatrixXd opt_ders_unconstrained; // Optimal derivatives
     Eigen::VectorXd opt_costs; // Return costs for each segment
 
-    GenerateWithFixedTimeSegments(taus, initial_derivatives, der_final, der_costs, intermediate_ders, polys_unconstrained_sparse,
+    GenerateWithFixedTimeSegments(taus, initial_derivatives, final_derivatives, der_costs, intermediate_ders, polys_unconstrained_sparse,
                                opt_ders_unconstrained, opt_costs, n_fixed);
 
     Polynomial p0_unC_sparse, p1_unC_sparse, p2_unC_sparse;
@@ -51,18 +51,35 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimization(){
 }
 
 void OptimalPiecewisePolynomialGenerator::setInitialPositionConstraint(const double initial_position) {
-    // In future, this may get initial position constraints from published waypoints
+    // In future, this may get from state estimator
     this->initial_position = initial_position;
 }
 
 void OptimalPiecewisePolynomialGenerator::setInitialVelocityConstraint(const double initial_velocity) {
-    // In future, this may get initial position constraints from published waypoints
+    // In future, this may get from state estimator
     this->initial_velocity = initial_velocity;
 }
 
 void OptimalPiecewisePolynomialGenerator::setInitialHigherOrderDerivativeConstraints() {
     initial_derivatives = Eigen::VectorXd(n_derivatives_specified);
     initial_derivatives << initial_position, initial_velocity, 0, 0, 0;
+}
+
+
+
+void OptimalPiecewisePolynomialGenerator::setFinalPositionConstraint(const double final_position) {
+    // In future, this may get from published waypoints
+    this->final_position = final_position;
+}
+
+void OptimalPiecewisePolynomialGenerator::setFinalVelocityConstraint(const double final_velocity) {
+    // In future, this may get from published waypoints
+    this->final_velocity = final_velocity;
+}
+
+void OptimalPiecewisePolynomialGenerator::setFinalHigherOrderDerivativeConstraints() {
+    final_derivatives = Eigen::VectorXd(n_derivatives_specified);
+    final_derivatives << final_position, final_velocity, 0, 0, 0;
 }
 
 
