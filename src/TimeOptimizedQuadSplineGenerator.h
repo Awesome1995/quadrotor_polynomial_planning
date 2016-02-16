@@ -5,9 +5,11 @@
 #ifndef SPLINES_TIMEOPTIMIZEDQUADSPLINEGENERATOR_H
 #define SPLINES_TIMEOPTIMIZEDQUADSPLINEGENERATOR_H
 
+#include "OptimalPiecewisePolynomialGenerator.h"
 
 class TimeOptimizedQuadSplineGenerator {
 
+public:
     OptimalPiecewisePolynomial GenerateTimeOptimized();
 
 private:
