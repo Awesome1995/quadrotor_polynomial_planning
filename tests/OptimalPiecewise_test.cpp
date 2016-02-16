@@ -12,8 +12,8 @@ void testOptimalPiecewise(PiecewisePolynomial& myPiecewisePolynomial) {
 
 int main() {
     std::cout << "Testing OptimalPiecewisePolynomialGenerator Class" << std::endl;
-    OptimalPiecewisePolynomialGenerator myOptimalPiecewisePolynomialGenerator = OptimalPiecewisePolynomialGenerator();
+    OptimalPiecewisePolynomialGenerator my_optimal_piecewise_poly = OptimalPiecewisePolynomialGenerator();
 
-    myOptimalPiecewisePolynomialGenerator.setUpOptimization();
+    my_optimal_piecewise_poly.setUpOptimization();
     return 0;
 }

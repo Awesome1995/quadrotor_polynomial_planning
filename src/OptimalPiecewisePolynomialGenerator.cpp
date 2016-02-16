@@ -87,26 +87,24 @@ void OptimalPiecewisePolynomialGenerator::setHigherOrderDerivativeWaypoints() {
 
 PiecewisePolynomial OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus) {
 
-    Polynomial * polys_unconstrained_sparse[3];
-
+    Polynomial * polys_unconstrained_sparse[n_segments];
     GenerateWithFixedTimeSegments(taus, initial_derivatives, final_derivatives, derivatives_to_minimize, intermediate_derivatives, polys_unconstrained_sparse,
                                   optimal_derivatives, optimal_costs, n_fixed);
 
-    Polynomial p0_unC_sparse, p1_unC_sparse, p2_unC_sparse;
+    std::vector<std::shared_ptr<Polynomial>> shared_polys;
+    for (int i = 0 ; i < n_segments; i++) {
+        shared_polys.push_back(std::shared_ptr<Polynomial> (polys_unconstrained_sparse[i]));
+    }
 
-    p0_unC_sparse = *polys_unconstrained_sparse[0];
-    p1_unC_sparse = *polys_unconstrained_sparse[1];
-    p2_unC_sparse = *polys_unconstrained_sparse[2];
+    PiecewisePolynomial optimal_piecewise_poly = PiecewisePolynomial(shared_polys, taus);
 
-    std::cout << p0_unC_sparse.eval(0) << std::endl;
-    std::cout << p0_unC_sparse.eval(0.75) << std::endl;
-    std::cout << p2_unC_sparse.eval(1) << std::endl;
+    std::cout << optimal_piecewise_poly.eval(0) << std::endl;
+//    std::cout << optimal_piecewise_poly.eval(0.75) << std::endl;
+//    std::cout << optimal_piecewise_poly.eval(1) << std::endl;
 
-    int order = 5;
-    Eigen::VectorXd taus2(7);
-    taus2 << 0.25, 0.5, 0.25, 0.1, 0.3, 0.4, 0.8;
-    PiecewisePolynomial myPiecewisePolynomial = PiecewisePolynomial(order, taus2);
-    return myPiecewisePolynomial;
+//    PiecewisePolynomial optimal_piecewise_poly = PiecewisePolynomial(1, taus);
+
+    return optimal_piecewise_poly;
 
 }
 

@@ -35,9 +35,11 @@ public:
      */
     PiecewisePolynomial(int order, Eigen::VectorXd taus);
 
-    PiecewisePolynomial(std::vector<Polynomial> const& polys , Eigen::VectorXd taus);
+    PiecewisePolynomial(std::vector<std::shared_ptr <Polynomial>> const& polys, Eigen::VectorXd taus);
 
-    double eval(double t);
+    double eval(double t) {
+        return HornersEval(t);
+    };
 
     void findIndexBinarySearch(double t, std::size_t& segment_index, double& time_within_segment) {
         findIndexBinarySearch(t, 0, times.size()-1, segment_index, time_within_segment);
