@@ -2,6 +2,7 @@
 // Created by peteflo on 2/5/16.
 //
 
+
 #include "TimeOptimizedQuadSplineGenerator.h"
 
 OptimalPiecewisePolynomial TimeOptimizedQuadSplineGenerator::GenerateTimeOptimized() {
@@ -13,17 +14,19 @@ OptimalPiecewisePolynomial TimeOptimizedQuadSplineGenerator::GenerateTimeOptimiz
 
     // With initial tau guess, generate optimal piecewise polynomial
     Eigen::VectorXd initial_taus = Eigen::VectorXd(n_segments);
-    initial_taus << 0.75, 0.5, 1;
+    initial_taus << 0.75, 1.0, 0.4;
     OptimalPiecewisePolynomial initial_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(initial_taus);
-    std::cout << "INITIAL TAUS " << initial_taus << std::endl;
-    std::cout << "COSTS " << initial_optimal_piecewise_poly.costs << std::endl;
-    std::cout << "SUM OF COSTS " << initial_optimal_piecewise_poly.costs.sum() << std::endl;
+    //std::cout << "INITIAL TAUS " << initial_taus << std::endl;
+    double sum_of_costs = initial_optimal_piecewise_poly.costs.sum() + k_T*initial_taus.sum();
+    //std::cout << "SUM OF COSTS " << sum_of_costs << std::endl;
     OptimalPiecewisePolynomial current_optimal_piecewise_poly;
     Eigen::VectorXd current_taus = initial_taus;
+    Eigen::VectorXd current_gradient = Eigen::VectorXd(n_segments);
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10; i++) {
         // Find numerical gradient
-        Eigen::VectorXd current_gradient = numericalGradient(current_taus);
+        current_gradient = numericalGradient(current_taus);
+        //current_gradient.setZero();
 
         // Take gradient descent step
         Eigen::VectorXd next_taus = oneStepGradientDescent(current_taus, current_gradient);
@@ -31,11 +34,10 @@ OptimalPiecewisePolynomial TimeOptimizedQuadSplineGenerator::GenerateTimeOptimiz
         current_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(next_taus);
 
         current_taus = next_taus;
+        //std::cout << "CURRENT TAUS " << current_taus << std::endl;
+        sum_of_costs = current_optimal_piecewise_poly.costs.sum() + k_T*current_taus.sum();
+        //std::cout << "SUM OF COSTS " << sum_of_costs << std::endl;
     }
-
-    std::cout << "FINAL TAUS " << current_taus << std::endl;
-    std::cout << "COSTS " << current_optimal_piecewise_poly.costs << std::endl;
-    std::cout << "SUM OF COSTS " << current_optimal_piecewise_poly.costs.sum() << std::endl;
 
     return current_optimal_piecewise_poly;
 
@@ -73,7 +75,7 @@ Eigen::VectorXd TimeOptimizedQuadSplineGenerator::numericalGradient(Eigen::Vecto
 }
 
 Eigen::VectorXd TimeOptimizedQuadSplineGenerator::oneStepGradientDescent(Eigen::VectorXd current_taus, Eigen::VectorXd current_gradient) {
-    double stepSize = 0.00000001;
+    double stepSize = 0.0000001;
     Eigen::VectorXd next_taus;
     next_taus = current_taus - stepSize * current_gradient;
 
