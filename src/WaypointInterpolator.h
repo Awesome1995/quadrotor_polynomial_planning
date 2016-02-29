@@ -15,8 +15,8 @@ public:
     void setWayPoints(const Eigen::MatrixXd waypoints);
     void setCurrentVelocities(const Eigen::VectorXd current_velocities);
     void setTausWithHeuristic();
-    void setQuadSplineWithFixedTimeSegments();
-    Eigen::MatrixXd returnCurrentDerivativesOfQuadSpline();
+    void computeQuadSplineWithFixedTimeSegments();
+    Eigen::MatrixXd getCurrentDerivativesOfQuadSpline();
 
 private:
     OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;

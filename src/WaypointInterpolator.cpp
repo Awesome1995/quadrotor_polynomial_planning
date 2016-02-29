@@ -37,7 +37,7 @@ void WaypointInterpolator::setTausWithHeuristic() {
 };
 
 
-void WaypointInterpolator::setQuadSplineWithFixedTimeSegments() {
+void WaypointInterpolator::computeQuadSplineWithFixedTimeSegments() {
     // generate 4 optimal piecewise polys, one each for x, y, z, yaw
     // store each in the quad spline
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(0), current_velocities(0));
@@ -53,6 +53,6 @@ void WaypointInterpolator::setQuadSplineWithFixedTimeSegments() {
     quad_spline.yaw_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
 };
 
-Eigen::MatrixXd WaypointInterpolator::returnCurrentDerivativesOfQuadSpline() {
-    return quad_spline_sequencer.currentDesiredDerivatives(quad_spline);
+Eigen::MatrixXd WaypointInterpolator::getCurrentDerivativesOfQuadSpline() {
+    return quad_spline_sequencer.getDesiredDerivatives(quad_spline);
 }
