@@ -157,8 +157,6 @@ void OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSegments(const Ei
     int N_int_waypts = intermediate_der.cols();
 
 
-    std::cout << "What's getting passed in is K_TAUS: " << K << std::endl;
-    std::cout << "What's getting passed in is N_INT_WAYPTS: " << N_int_waypts << std::endl;
     if (K != 1 + N_int_waypts) {
         fprintf(stderr, "Error: Number of taus must be 1 + number of intermediate waypoints, %s, line %d\n", __FILE__,
                 __LINE__);

@@ -10,11 +10,16 @@ void QuadSplineSequencer::resetTimeToZero() {
     this->t1 = high_resolution_clock::now();
 };
 
-Eigen::MatrixXd QuadSplineSequencer::getDesiredDerivatives(QuadSpline quad_spline){
+double QuadSplineSequencer::getTime() {
     using namespace std::chrono;
     this->t2 = high_resolution_clock::now();
     duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-    double t = time_span.count();
+    std::cout << "Time for eval is now " << time_span.count() << std::endl;
+    return time_span.count();
+}
+
+Eigen::MatrixXd QuadSplineSequencer::getDesiredDerivatives(QuadSpline quad_spline){
+    double t = getTime();
     return quad_spline.evalDerivativesAtTime(t);
 };
 
