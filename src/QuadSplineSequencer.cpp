@@ -14,6 +14,7 @@ Eigen::MatrixXd QuadSplineSequencer::getDesiredDerivatives(QuadSpline quad_splin
     using namespace std::chrono;
     this->t2 = high_resolution_clock::now();
     duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-    return quad_spline.evalDerivativesAtTime(time_span);
+    double t = time_span.count();
+    return quad_spline.evalDerivativesAtTime(t);
 };
 

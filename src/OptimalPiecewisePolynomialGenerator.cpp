@@ -44,6 +44,10 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimizationWithWaypoints(const E
     setPositionWaypoints(waypoints_one_output.segment(1, n_segments-1));
     setHigherOrderDerivativeWaypoints();
 
+    std::cout << "Initial position " << initial_position << " Initial velocity " << initial_velocity << std::endl;
+    std::cout << "Final position " << final_position << " Final velocity " << final_velocity << std::endl;
+    std::cout << "Waypoints intermediate " << position_waypoints << std::endl;
+
 };
 
 
@@ -152,6 +156,9 @@ void OptimalPiecewisePolynomialGenerator::GenerateWithFixedTimeSegments(const Ei
     int N_final_constraints = der_final.rows();
     int N_int_waypts = intermediate_der.cols();
 
+
+    std::cout << "What's getting passed in is K_TAUS: " << K << std::endl;
+    std::cout << "What's getting passed in is N_INT_WAYPTS: " << N_int_waypts << std::endl;
     if (K != 1 + N_int_waypts) {
         fprintf(stderr, "Error: Number of taus must be 1 + number of intermediate waypoints, %s, line %d\n", __FILE__,
                 __LINE__);

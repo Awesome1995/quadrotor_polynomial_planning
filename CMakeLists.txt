@@ -35,12 +35,14 @@ target_link_libraries( poly_traj_node ${catkin_LIBRARIES} )
 
 add_library( Polynomial src/Polynomial.cpp)
 add_library( PolysAndQuadSplines src/PiecewisePolynomial.cpp src/QuadSpline.cpp src/OptimalPiecewisePolynomialGenerator.cpp src/TimeOptimizedQuadSplineGenerator.cpp)
+add_library( WaypointsAndSequencing src/WaypointInterpolator.cpp src/QuadSplineSequencer.cpp)
 
 target_link_libraries(poly_traj_node Polynomial)
 add_executable( polyTest tests/poly-test.cpp )
 target_link_libraries(polyTest Polynomial)
 target_link_libraries(polyTest PolysAndQuadSplines)
 target_link_libraries( PolysAndQuadSplines Polynomial )
+target_link_libraries( WaypointsAndSequencing PolysAndQuadSplines )
 
 add_executable( ppTest tests/piecewise_poly_test.cpp )
 target_link_libraries( ppTest PolysAndQuadSplines)
@@ -50,3 +52,7 @@ target_link_libraries( OptimalPpTest PolysAndQuadSplines)
 
 add_executable( TimeOptimizedQuadSplineTest tests/time_optimized_test.cpp )
 target_link_libraries( TimeOptimizedQuadSplineTest PolysAndQuadSplines)
+
+add_executable( WaypointInterpolatorTest tests/waypoint_interpolator_test.cpp )
+target_link_libraries( WaypointInterpolatorTest PolysAndQuadSplines)
+target_link_libraries( WaypointInterpolatorTest WaypointsAndSequencing)

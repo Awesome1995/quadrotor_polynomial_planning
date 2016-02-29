@@ -56,7 +56,6 @@ private:
     Eigen::VectorXd final_derivatives;
 
     Eigen::VectorXd derivatives_to_minimize;
-    Eigen::VectorXd taus;
     int n_fixed;
 
     Eigen::VectorXd position_waypoints;
