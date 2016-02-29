@@ -3,12 +3,17 @@
 #include <nav_msgs/Path.h>
 #include "Polynomial.hpp"
 #include <std_msgs/String.h>
+#include "acl_fsw/QuadGoal.h"
+
 
 class MinimumSnapNode {
 public:
 
-	MinimumSnapNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& samples_topic) {
+	MinimumSnapNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
 		waypoints_sub = nh.subscribe(waypoint_topic, 10, &MinimumSnapNode::OnWaypoints, this);
+
+		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 10);
+
 		poly_samples_pub = nh.advertise<nav_msgs::Odometry>(samples_topic, 10);
 		std::cout << "Sleeping" << std::endl;
 		sleep(2);
@@ -55,6 +60,7 @@ private:
 	}
 
 	ros::Subscriber waypoints_sub;
+	ros::Publisher local_goal_pub;
 	ros::Publisher poly_samples_pub;
 };
 
@@ -63,10 +69,10 @@ private:
 int main(int argc, char* argv[]) {
 	std::cout << "Initializing poly traj node" << std::endl;
 
-	ros::init(argc, argv, "polyTraj_node");
+	ros::init(argc, argv, "MinimumSnapNode");
 	ros::NodeHandle nh;
 
-	MinimumSnapNode minimum_snap_node(nh, "/waypoint_list", "/poly_samples");
+	MinimumSnapNode minimum_snap_node(nh, "/waypoint_list", "/goal_passthrough", "/poly_samples");
 
 	//minimum_snap_node.publishOdomPoints(samples);
 

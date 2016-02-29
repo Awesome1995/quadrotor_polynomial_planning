@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs
 	tf
 	nav_msgs
+	acl_fsw
 	message_generation
 	)
 
