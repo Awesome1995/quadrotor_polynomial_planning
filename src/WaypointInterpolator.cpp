@@ -12,6 +12,7 @@ void WaypointInterpolator::setWayPoints(const Eigen::MatrixXd waypoints) {
     // number of segments = number of columns - 1
     this->waypoints = waypoints;
     this->n_segments = waypoints.cols() - 1;
+    quad_spline_sequencer.resetTimeToZero();
 };
 
 void WaypointInterpolator::setCurrentVelocities(const Eigen::VectorXd current_velocities) {
@@ -51,3 +52,7 @@ void WaypointInterpolator::setQuadSplineWithFixedTimeSegments() {
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(3), current_velocities(3));
     quad_spline.yaw_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
 };
+
+Eigen::MatrixXd WaypointInterpolator::returnCurrentDerivativesOfQuadSpline() {
+    return quad_spline_sequencer.currentDesiredDerivatives(quad_spline);
+}
