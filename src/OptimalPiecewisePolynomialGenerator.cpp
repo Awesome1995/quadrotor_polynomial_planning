@@ -4,7 +4,7 @@
 
 #include "OptimalPiecewisePolynomialGenerator.h"
 
-void OptimalPiecewisePolynomialGenerator::setUpOptimization(int n_segments){
+void OptimalPiecewisePolynomialGenerator::setUpOptimizationTest(int n_segments){
     this->n_segments = n_segments;
     initializeOptimizationCriteria();
 
@@ -16,9 +16,36 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimization(int n_segments){
     setFinalVelocityConstraint(0.0);
     initializeFinalHigherOrderDerivativeConstraints();
 
-    setPositionWaypoints();
+    setPositionWaypointsTest();
     setHigherOrderDerivativeWaypoints();
 }
+
+void OptimalPiecewisePolynomialGenerator::setUpOptimization(int n_segments){
+    this->n_segments = n_segments;
+    initializeOptimizationCriteria();
+}
+
+void OptimalPiecewisePolynomialGenerator::setUpOptimizationWithWaypoints(const Eigen::VectorXd waypoints_one_output, const double current_velocity){
+    // format of waypoints_one_output should be:
+    // number of elements = number of waypoitns
+    // number of segments = number of elements -1
+
+    this->n_segments = waypoints_one_output.size() - 1;
+    initializeOptimizationCriteria();
+
+    setInitialPositionConstraint(waypoints_one_output(0));
+    setInitialVelocityConstraint(current_velocity);
+    initializeInitialHigherOrderDerivativeConstraints();
+
+    setFinalPositionConstraint(waypoints_one_output(n_segments));
+    setFinalVelocityConstraint(0.0);
+    initializeFinalHigherOrderDerivativeConstraints();
+
+    setPositionWaypoints(waypoints_one_output.segment(1, n_segments-1));
+    setHigherOrderDerivativeWaypoints();
+
+};
+
 
 void OptimalPiecewisePolynomialGenerator::initializeOptimizationCriteria() {
     n_derivatives_specified = 5;
@@ -63,9 +90,13 @@ void OptimalPiecewisePolynomialGenerator::initializeFinalHigherOrderDerivativeCo
 }
 
 
-void OptimalPiecewisePolynomialGenerator::setPositionWaypoints() {
+void OptimalPiecewisePolynomialGenerator::setPositionWaypointsTest() {
     position_waypoints = Eigen::VectorXd(n_segments - 1);
     position_waypoints << 4, 5;
+}
+
+void OptimalPiecewisePolynomialGenerator::setPositionWaypoints(const Eigen::VectorXd position_waypoints_intermediate){
+    position_waypoints = position_waypoints_intermediate;
 }
 
 void OptimalPiecewisePolynomialGenerator::setHigherOrderDerivativeWaypoints() {

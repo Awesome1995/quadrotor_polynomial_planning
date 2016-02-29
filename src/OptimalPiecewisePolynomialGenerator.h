@@ -16,7 +16,9 @@ struct OptimalPiecewisePolynomial {
 class OptimalPiecewisePolynomialGenerator {
 public:
 
+    void setUpOptimizationTest(int n_segments);
     void setUpOptimization(int n_segments);
+    void setUpOptimizationWithWaypoints(const Eigen::VectorXd waypoints, const double current_velocity);
     OptimalPiecewisePolynomial GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus);
 
 
@@ -33,7 +35,8 @@ private:
     void setFinalVelocityConstraint(const double initial_velocity);
     void initializeFinalHigherOrderDerivativeConstraints();
 
-    void setPositionWaypoints();
+    void setPositionWaypoints(Eigen::VectorXd waypoints);
+    void setPositionWaypointsTest();
     void setHigherOrderDerivativeWaypoints();
 
     void GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,

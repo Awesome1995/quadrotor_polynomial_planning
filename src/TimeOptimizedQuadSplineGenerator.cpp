@@ -10,7 +10,7 @@ OptimalPiecewisePolynomial TimeOptimizedQuadSplineGenerator::GenerateTimeOptimiz
 
     // Set up optimization for optimal piecewise polynomial generator
     n_segments = 3;
-    optimal_piecewise_polynomial_generator.setUpOptimization(n_segments);
+    optimal_piecewise_polynomial_generator.setUpOptimizationTest(n_segments);
 
     // With initial tau guess, generate optimal piecewise polynomial
     Eigen::VectorXd initial_taus = Eigen::VectorXd(n_segments);
