@@ -44,10 +44,6 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimizationWithWaypoints(const E
     setPositionWaypoints(waypoints_one_output.segment(1, n_segments-1));
     setHigherOrderDerivativeWaypoints();
 
-    std::cout << "Initial position " << initial_position << " Initial velocity " << initial_velocity << std::endl;
-    std::cout << "Final position " << final_position << " Final velocity " << final_velocity << std::endl;
-    std::cout << "Waypoints intermediate " << position_waypoints << std::endl;
-
 };
 
 
