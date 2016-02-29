@@ -11,10 +11,12 @@
 class QuadSpline {
 
 public:
-    OptimalPiecewisePolynomial x_piecewise_poly;
-    OptimalPiecewisePolynomial y_piecewise_poly;
-    OptimalPiecewisePolynomial z_piecewise_poly;
-    OptimalPiecewisePolynomial yaw_piecewise_poly;
+    OptimalPiecewisePolynomial x_optimal_piecewise_poly;
+    OptimalPiecewisePolynomial y_optimal_piecewise_poly;
+    OptimalPiecewisePolynomial z_optimal_piecewise_poly;
+    OptimalPiecewisePolynomial yaw_optimal_piecewise_poly;
+
+    Eigen::MatrixXd evalDerivativesAtTime(const double t);
 };
 
 

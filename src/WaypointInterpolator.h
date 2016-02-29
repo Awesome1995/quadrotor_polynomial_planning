@@ -7,18 +7,25 @@
 
 #include "OptimalPiecewisePolynomialGenerator.h"
 #include "QuadSpline.h"
+#include "QuadSplineSequencer.h"
 
 class WaypointInterpolator {
 
 public:
-    void GetWayPoints();
-    OptimalPiecewisePolynomial GenerateTimeOptimized();
+    void setWayPoints(const Eigen::MatrixXd waypoints);
+    void setCurrentVelocities(const Eigen::VectorXd current_velocities);
+    void setTausWithHeuristic();
+    void setQuadSplineWithFixedTimeSegments();
+    Eigen::MatrixXd publishDerivativesOfQuadSpline();
 
 private:
     OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;
     int n_segments;
-    // waypoints
+    Eigen::MatrixXd waypoints;
+    Eigen::VectorXd current_velocities;
     Eigen::VectorXd taus;
+    QuadSpline quad_spline;
+    QuadSplineSequencer quad_spline_sequencer;
 };
 
 #endif //SPLINES_WAYPOINTINTERPOLATOR_H
