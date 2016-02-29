@@ -6,11 +6,10 @@ import rosnode
 from nav_msgs.msg import Path
 from std_msgs.msg import Float64, Float64MultiArray
 from geometry_msgs.msg import PoseStamped, Pose, TwistStamped
-from sensor_msgs.msg import Joy
 
 from acl_fsw.msg import QuadGoal
 from splines.msg import Coeff
-from acl_fsw.msg import JoyDef
+from fla_msgs.msg import FlightCommand
 
 import utils
 import array_utils as au
@@ -75,11 +74,11 @@ class master:
 		self.coeff_sub = rospy.Subscriber('/coeffs',Coeff, self.coeffs_CB)
 		self.pubGoal = rospy.Publisher('goal', QuadGoal, queue_size=1)
 		self.pose_sub  = rospy.Subscriber('pose', PoseStamped, self.pose_CB)
-		self.joy = rospy.Subscriber("/joy", Joy, self.joyCB)
+		self.command = rospy.Subscriber("/flight/command", FlightCommand, self.commandCB)
 
 		self.pose = Pose()
 		self.goal = QuadGoal()
-		self.joyinfo = JoyDef()
+		self.cmdinfo = FlightCommand()
 
 		rospy.Timer(rospy.Duration(controlDT),self.cmdTimer)
 
@@ -247,13 +246,12 @@ class master:
 			self.jt = 0
 			self.ut = 0
 
-
-	def joyCB(self, data):
+	def commandCB(self, data):
 
 		if self.status == NOT_FLYING:
 			self.goal.yaw = utils.quat2yaw(self.pose.orientation)
 
-		if data.buttons[self.joyinfo.A] and self.status == NOT_FLYING:
+		if data.command == data.CMD_TAKEOFF and self.status == NOT_FLYING:
 			if '/rosbag_ft' in rosnode.get_node_names():
 				self.status = FLYING
 				self.wpType = TAKEOFF
@@ -266,21 +264,21 @@ class master:
 	
 				rospy.loginfo("Flying")
 			else:
-				rospy.logerr('can\'t takeoff without logging !!  --Nick Roy')
+				rospy.logerr('Can\'t takeoff without logging !!  --Nick Roy')
 				
 		
-		elif self.go == True and data.buttons[self.joyinfo.Y]:
-			rospy.loginfo("Enerting state of hover")
+		elif data.command == data.CMD_HOVER and self.go == True:
+			rospy.loginfo("Entering state of hover")
 			self.stop_now = True
 
 		# emergency disable
-		elif data.buttons[self.joyinfo.B] and self.status == FLYING:
+		elif data.command == data.CMD_KILL and self.status == FLYING:
 			self.status = NOT_FLYING
 			self.wpType = DISABLE
 			self.go = False
 
 		# landing
-		elif data.buttons[self.joyinfo.X] and self.status == FLYING:
+		elif data.command == data.CMD_LAND and self.status == FLYING:
 			self.go = False
 			self.status = LANDING
 			# self.wpType = LAND
@@ -292,7 +290,7 @@ class master:
 			self.goal.dyaw = 0
 			self.I = 0
 
-		elif data.buttons[self.joyinfo.CENTER] and self.status == FLYING:
+		elif data.command == data.CMD_GO and self.status == FLYING:
 			if self.received_coeff:
 				self.eval_splines()
 
@@ -311,7 +309,7 @@ class master:
 				rospy.loginfo("Haven't received coefficients.")
 
 			
-		elif data.buttons[self.joyinfo.START] and self.status == FLYING:
+		elif data.command == data.CMD_INIT and self.status == FLYING:
 			if self.received_coeff:
 				rospy.loginfo("Starting")
 				self.go = True
