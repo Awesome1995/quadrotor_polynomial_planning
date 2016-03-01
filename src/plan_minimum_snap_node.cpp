@@ -57,14 +57,24 @@ private:
 		std::cout << "Got velocity " << std::endl;
 		// store it as Eigen vector
 		velocity_x_y_z_yaw << twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z, 0.0; // NOTE: would definitely be preferable to actually use the yawdot coming from state estimator
-		std::cout << "How's my eigen vector for velocity? " << velocity_x_y_z_yaw << std::endl;
+		//std::cout << "How's my eigen vector for velocity? " << velocity_x_y_z_yaw << std::endl;
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
 		std::cout << "Got waypoints" << std::endl;
 		// store as Eigen vector
 
+		//std::cout << "What does waypoint list look like  " << waypoints.poses <<std::endl;
 
+		int counter = 0;
+		size_t num_waypoints = std::min(5, (int) waypoints.poses.size());
+		waypoints_matrix.resize(4,num_waypoints);
+		for (int i = 0; i < num_waypoints; i++) {
+			auto const& waypoint_i = waypoints.poses[i];
+			waypoints_matrix.col(i) << waypoint_i.pose.position.x, waypoint_i.pose.position.y, waypoint_i.pose.position.z, tf::getYaw(waypoint_i.pose.orientation);
+		}
+
+		std::cout << waypoints_matrix << std::endl;
 
 
 	}
@@ -78,8 +88,11 @@ private:
 
 	nav_msgs::Path waypoints;
 
+	size_t num_waypoints;
+
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Vector4d velocity_x_y_z_yaw;
+	Eigen::MatrixXd waypoints_matrix;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
