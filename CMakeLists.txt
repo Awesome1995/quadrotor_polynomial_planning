@@ -45,12 +45,8 @@ target_link_libraries( PolysAndQuadSplines Polynomial )
 target_link_libraries( WaypointsAndSequencing PolysAndQuadSplines )
 target_link_libraries(plan_minimum_snap_node WaypointsAndSequencing)
 
-catkin_add_gtest( SplinesTests tests/piecewise_poly_test.cpp )
-target_link_libraries( SplinesTests PolysAndQuadSplines)
+catkin_add_gtest( SplinesTests tests/Splines_gtests.cpp)
+target_link_libraries( SplinesTests PolysAndQuadSplines WaypointsAndSequencing)
 
 add_executable( TimeOptimizedQuadSplineTest tests/time_optimized_test.cpp )
 target_link_libraries( TimeOptimizedQuadSplineTest PolysAndQuadSplines)
-
-add_executable( WaypointInterpolatorTest tests/waypoint_interpolator_test.cpp )
-target_link_libraries( WaypointInterpolatorTest PolysAndQuadSplines)
-target_link_libraries( WaypointInterpolatorTest WaypointsAndSequencing)

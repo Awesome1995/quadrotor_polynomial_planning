@@ -6,6 +6,11 @@
 #include "PiecewisePolynomial.h"
 #include "OptimalPiecewisePolynomialGenerator.h"
 #include "gtest/gtest.h"
+#include "WaypointInterpolator.h"
+#include <time.h>
+#include <ctime>
+#include <ratio>
+#include <chrono>
 
 
 TEST(PiecewisePolyTest, NegativeTime) {
@@ -125,6 +130,84 @@ TEST(OptimalPiecewiseTest, TestOptimalPiecewiseWithWaypoints) {
     ASSERT_GE(optimal_piecewise_poly.costs.sum(), 0);
     ASSERT_EQ(optimal_piecewise_poly.costs.size(), 3);
 }
+
+TEST(WaypointInterpolatorTest, TestWithFourWaypoints) {
+
+    std::cout << "Running a test with an actual stopwatch..." << std::endl << "Please wait... (13 seconds)" << std::endl;
+    using namespace std::chrono;
+
+    WaypointInterpolator waypoint_interpolator = WaypointInterpolator();
+
+    Eigen::MatrixXd waypoints = Eigen::MatrixXd(4,5);
+    waypoints << -1, 2, -3, 2, 3,     // Initialize A. The elements can also be
+            4, 5, 6, 4, -1,    // matrices, which are stacked along cols
+            1, 3.9, 4.0, 2.0, -1.3,
+            0, 0.1, -0.1, 0, 0;
+    waypoint_interpolator.setWayPoints(waypoints);
+
+    Eigen::VectorXd current_velocities = Eigen::VectorXd(4);
+    current_velocities << 1, 3, 0.1, -1;
+
+    waypoint_interpolator.setCurrentVelocities(current_velocities);
+    waypoint_interpolator.setTausWithHeuristic();
+
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+    waypoint_interpolator.computeQuadSplineWithFixedTimeSegments();
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+
+    ASSERT_GE(1.0/time_span.count(), 200); // Assert that we can compute new quad splines at greater than 200 Hz (we only need ~10 Hz, but should be in ~500 Hz range, otherwise something is slow)
+
+    Eigen::MatrixXd currentDerivs = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+    ASSERT_NEAR(waypoints(0,0), currentDerivs(0,0), 0.1); // Check that trajectory starts near first waypoint
+
+    for (int i = 0; i < 13; i ++) {
+
+        high_resolution_clock::time_point t1 = high_resolution_clock::now();
+        Eigen::MatrixXd currentDerivs = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+        high_resolution_clock::time_point t2 = high_resolution_clock::now();
+        duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+        ASSERT_GE(1.0/time_span.count(), 5000); // Assert that we can evaluate our trajectory at greater than 5 kHz (we only need ~100 Hz, but we can do this blazing fast, otherwise something is slow)
+
+        //std::cout << "Current derivs are: " << std::endl << currentDerivs << std::endl;
+        ASSERT_LE(currentDerivs(0,3), 10); // Testing to make sure Snap isn't too high ever
+        ASSERT_LE(currentDerivs(1,3), 10);
+        ASSERT_LE(currentDerivs(2,3), 10);
+        ASSERT_LE(currentDerivs(3,3), 10);
+        if (i >= 10) {
+            ASSERT_NEAR(waypoints(0,4), currentDerivs(0,0), 0.1); // Make sure we remain at endpoint
+            ASSERT_NEAR(waypoints(1,4), currentDerivs(1,0), 0.1);
+            ASSERT_NEAR(waypoints(2,4), currentDerivs(2,0), 0.1);
+            ASSERT_NEAR(waypoints(3,4), currentDerivs(3,0), 0.1);
+        }
+        sleep(1);
+    }
+    return;
+}
+
+TEST(WaypointInterpolatorTest, TestWithTwoWaypoints) {
+
+    WaypointInterpolator waypoint_interpolator = WaypointInterpolator();
+
+    Eigen::MatrixXd waypoints = Eigen::MatrixXd(4,2);
+    waypoints << 1, 2,     // Initialize A. The elements can also be
+            4, 8,    // matrices, which are stacked along cols
+            1, 49,
+            120, 130;
+    waypoint_interpolator.setWayPoints(waypoints);
+
+    Eigen::VectorXd current_velocities = Eigen::VectorXd(4);
+    current_velocities << 1, 3, 0.1, -1;
+
+    waypoint_interpolator.setCurrentVelocities(current_velocities);
+    waypoint_interpolator.setTausWithHeuristic();
+    waypoint_interpolator.computeQuadSplineWithFixedTimeSegments();
+
+    Eigen::MatrixXd currentDerivs = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+    ASSERT_NEAR(waypoints(0,0), currentDerivs(0,0), 0.1); // Check that trajectory starts near first waypoint
+    return;
+}
+
 
 int main(int argc, char* argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
