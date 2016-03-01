@@ -50,12 +50,14 @@ private:
 		std::cout << "Got pose " << std::endl;
 		// store it as Eigen vector
 		pose_x_y_z_yaw << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, tf::getYaw(pose.pose.orientation);
-		std::cout << "How's my eigen vector for pose? " << pose_x_y_z_yaw << std::endl;
+		//std::cout << "How's my eigen vector for pose? " << pose_x_y_z_yaw << std::endl;
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		std::cout << "Got velocity " << std::endl;
 		// store it as Eigen vector
+		velocity_x_y_z_yaw << twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z, twist.twist.angular.z; // NOTE: we need to double check on if angular.z is actually what we want for yawdot
+		std::cout << "How's my eigen vector for velocity? " << velocity_x_y_z_yaw << std::endl;
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
