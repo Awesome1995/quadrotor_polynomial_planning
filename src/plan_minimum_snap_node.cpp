@@ -71,12 +71,11 @@ private:
 		waypoints_matrix.resize(4,num_waypoints);
 		for (int i = 0; i < num_waypoints; i++) {
 			auto const& waypoint_i = waypoints.poses[i];
-			waypoints_matrix.col(i) << waypoint_i.pose.position.x, waypoint_i.pose.position.y, waypoint_i.pose.position.z, tf::getYaw(waypoint_i.pose.orientation);
+			waypoints_matrix.col(i) << waypoint_i.pose.position.x, waypoint_i.pose.position.y, waypoint_i.pose.position.z, 0.0; // if we want yaw poses from waypoints, use instead tf::getYaw(waypoint_i.pose.orientation)
 		}
 
 		std::cout << waypoints_matrix << std::endl;
-
-
+		
 	}
 
 
