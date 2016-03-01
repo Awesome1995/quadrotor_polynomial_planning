@@ -56,7 +56,7 @@ private:
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		std::cout << "Got velocity " << std::endl;
 		// store it as Eigen vector
-		velocity_x_y_z_yaw << twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z, twist.twist.angular.z; // NOTE: we need to double check on if angular.z is actually what we want for yawdot
+		velocity_x_y_z_yaw << twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z, 0.0; // NOTE: would definitely be preferable to actually use the yawdot coming from state estimator
 		std::cout << "How's my eigen vector for velocity? " << velocity_x_y_z_yaw << std::endl;
 	}
 
