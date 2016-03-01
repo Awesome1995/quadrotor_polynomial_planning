@@ -68,10 +68,6 @@ TEST(PiecewisePolyTest, TestHornersEval) {
 }
 
 TEST(PiecewisePolyTest, TestEvalDerivs) {
-    //std::cout << myPiecewisePolynomial.evalDerivative(0.0, 0) << std::endl <<
-    //myPiecewisePolynomial.evalDerivative(0.0, 1) << std::endl <<
-    //myPiecewisePolynomial.evalDerivative(0.0, 2) << std::endl <<
-    //myPiecewisePolynomial.evalDerivative(0.0, 3) << std::endl;
     int order = 5;
     Eigen::VectorXd taus(7);
     taus << 0.25, 0.5, 0.25, 0.1, 0.3, 0.4, 0.8;
