@@ -221,7 +221,7 @@ void polyQuadDerOptPiecewise(const Eigen::VectorXd & taus, const Eigen::VectorXd
 
   Eigen::VectorXd x_star_BR(N_K);
   Eigen::VectorXd x_star(N_K);
-  eigen_utils::quadProgEliminationSolve(Q_BR, A_BR, b, x_star_BR);
+  quadProgEliminationSolve(Q_BR, A_BR, b, x_star_BR);
 
   for (int i = 0; i < N_K; i++) {
     x_star(index_kk_to_BR(i)) = x_star_BR(i);
@@ -633,7 +633,7 @@ Polynomial polyQuadDerOpt(double tau, const Eigen::VectorXd & der_0, const Eigen
 
   Polynomial poly(N_poly - 1);
 
-  eigen_utils::quadProgEliminationSolve(Q, A, b, poly.coeffs);
+  quadProgEliminationSolve(Q, A, b, poly.coeffs);
 
   if (cost != NULL) {
     *cost = poly.coeffs.transpose() * Q * poly.coeffs;

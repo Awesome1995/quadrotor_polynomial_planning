@@ -22,26 +22,26 @@ void poly_test(int argc, char ** argv)
   Polynomial poly(N);
   poly.coeffs.setRandom();
 
-  eigen_dump(poly);
-  eigen_dump(poly.getDerivative());
-  eigen_dump(poly.eval(2));
-  eigen_dump(poly.eval(2, 1));
-  eigen_dump(poly.getDerivative().eval(2));
+  //eigen_dump(poly);
+  //eigen_dump(poly.getDerivative());
+  //eigen_dump(poly.eval(2));
+  //eigen_dump(poly.eval(2, 1));
+  //eigen_dump(poly.getDerivative().eval(2));
 
   VectorXd coeffs(6);
   coeffs << 1, 1, 1, 1, 1, 1;
   Polynomial poly_coeffs(coeffs);
-  eigen_dump(poly_coeffs);
+  //eigen_dump(poly_coeffs);
 
   MatrixXd A_derivative(N, N_poly);
   polyGetDerivativeMatrix(2, A_derivative, 1);
-  eigen_dump(A_derivative);
+  //eigen_dump(A_derivative);
 
   MatrixXd Q(N_poly, N_poly);
   VectorXd der_costs(N_poly);
   der_costs.setOnes();
   polyGetCostMatrix(2, Q, der_costs);
-  eigen_dump(Q);
+  //eigen_dump(Q);
 }
 
 void quad_trajectory_poly_test()
@@ -110,10 +110,10 @@ void quad_trajectory_poly_test()
       n_fixed);
 
   // Print the resulting coefficients to the console
-  eigen_matlab_dump(taus);
-  eigen_matlab_dump(p0);
-  eigen_matlab_dump(p1);
-  eigen_matlab_dump(p2);
+  //eigen_matlab_dump(taus);
+  //eigen_matlab_dump(p0);
+  //eigen_matlab_dump(p1);
+  //eigen_matlab_dump(p2);
 
 
   // Compute the solution using the unconstrained QP formulation (Richter, Bry & Roy, ISRR 2013)
@@ -128,9 +128,9 @@ void quad_trajectory_poly_test()
   p0_unC = *polys_unconstrained[0];
   p1_unC = *polys_unconstrained[1];
   p2_unC = *polys_unconstrained[2];
-  eigen_matlab_dump(p0_unC);
-  eigen_matlab_dump(p1_unC);
-  eigen_matlab_dump(p2_unC);
+  //eigen_matlab_dump(p0_unC);
+  //eigen_matlab_dump(p1_unC);
+  //eigen_matlab_dump(p2_unC);
 
   // Compute the solution using the SPARSE implementation of the unconstrained QP (Richter, Bry & Roy, ISRR 2013)
   // For this one, the solver will allocate the Polynomial object for us
@@ -156,9 +156,9 @@ void quad_trajectory_poly_test()
   p0_unC_sparse = *polys_unconstrained_sparse[0];
   p1_unC_sparse = *polys_unconstrained_sparse[1];
   p2_unC_sparse = *polys_unconstrained_sparse[2];
-  eigen_matlab_dump(p0_unC_sparse);
-  eigen_matlab_dump(p1_unC_sparse);
-  eigen_matlab_dump(p2_unC_sparse);
+  //eigen_matlab_dump(p0_unC_sparse);
+  //eigen_matlab_dump(p1_unC_sparse);
+  //eigen_matlab_dump(p2_unC_sparse);
 
   std::cout << p0.eval(0) << std::endl;
   std::cout << p0.eval(0.75) << std::endl;
