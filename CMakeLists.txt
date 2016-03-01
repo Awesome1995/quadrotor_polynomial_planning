@@ -31,8 +31,8 @@ include_directories( ${catkin_INCLUDE_DIRS} )
 include_directories(${CATKIN_DEVEL_PREFIX}/../external/pronto-distro/build/include) #for eigen_utils
 
 
-add_executable( minimum_snap_node src/minimum_snap_node.cpp)
-target_link_libraries( minimum_snap_node ${catkin_LIBRARIES} )
+add_executable( plan_minimum_snap_node src/plan_minimum_snap_node.cpp)
+target_link_libraries( plan_minimum_snap_node ${catkin_LIBRARIES} )
 
 add_library( Polynomial src/Polynomial.cpp)
 add_library( PolysAndQuadSplines src/PiecewisePolynomial.cpp src/QuadSpline.cpp src/OptimalPiecewisePolynomialGenerator.cpp src/TimeOptimizedQuadSplineGenerator.cpp)
@@ -44,7 +44,7 @@ target_link_libraries(polyTest Polynomial)
 target_link_libraries(polyTest PolysAndQuadSplines)
 target_link_libraries( PolysAndQuadSplines Polynomial )
 target_link_libraries( WaypointsAndSequencing PolysAndQuadSplines )
-target_link_libraries(minimum_snap_node WaypointsAndSequencing)
+target_link_libraries(plan_minimum_snap_node WaypointsAndSequencing)
 
 add_executable( ppTest tests/piecewise_poly_test.cpp )
 target_link_libraries( ppTest PolysAndQuadSplines)
