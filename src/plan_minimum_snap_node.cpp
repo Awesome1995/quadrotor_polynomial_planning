@@ -14,13 +14,13 @@ class PlanMinimumSnapNode {
 public:
 
 	PlanMinimumSnapNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
-		waypoints_sub = nh.subscribe(waypoint_topic, 10, &PlanMinimumSnapNode::OnWaypoints, this);
-		pose_sub = nh.subscribe(pose_topic, 10, &PlanMinimumSnapNode::OnPose, this);
-		velocity_sub = nh.subscribe(velocity_topic, 10, &PlanMinimumSnapNode::OnVelocity, this);
+		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
+		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
+		velocity_sub = nh.subscribe(velocity_topic, 1, &PlanMinimumSnapNode::OnVelocity, this);
 
-		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 10);
+		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 
-		poly_samples_pub = nh.advertise<nav_msgs::Odometry>(samples_topic, 10);
+		poly_samples_pub = nh.advertise<nav_msgs::Odometry>(samples_topic, 1);
 
 		std::cout << "Sleeping" << std::endl;
 		sleep(2);
