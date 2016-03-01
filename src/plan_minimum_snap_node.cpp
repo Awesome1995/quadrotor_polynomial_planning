@@ -52,7 +52,6 @@ public:
 	}
 
 	void computeMinSnapNode() {
-
 		std::cout << "computing " << std::endl;
 		waypoint_interpolator.setWayPoints(waypoints_matrix);
 		waypoint_interpolator.setCurrentVelocities(velocity_x_y_z_yaw);
@@ -62,10 +61,12 @@ public:
 
 		std::cout << "Computed quad splines successfully " << std::endl;
 
+		
+		// put the quad spline into a message
+
 		mutex.lock();
 		gotPose = gotVelocity = gotWaypoints = false;
 		mutex.unlock();
-
 	}
 
 private:
