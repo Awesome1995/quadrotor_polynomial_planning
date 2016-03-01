@@ -28,7 +28,7 @@ public:
 
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 
-		poly_samples_pub = nh.advertise<nav_msgs::Odometry>(samples_topic, 1);
+		poly_samples_pub = nh.advertise<geometry_msgs::PoseStamped>(samples_topic, 1);
 
 		std::cout << "Sleeping" << std::endl;
 		sleep(2);
@@ -89,10 +89,10 @@ private:
 				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
 				counter++;
 
-				nav_msgs::Odometry poly_samples_msg;
-				poly_samples_msg.pose.pose.position.x = current_derivatives(0,0);
-				poly_samples_msg.pose.pose.position.x = current_derivatives(1,0);
-				poly_samples_msg.pose.pose.position.x = current_derivatives(2,0);
+				geometry_msgs::PoseStamped poly_samples_msg;
+				poly_samples_msg.pose.position.x = current_derivatives(0,0);
+				poly_samples_msg.pose.position.y = current_derivatives(1,0);
+				poly_samples_msg.pose.position.z = current_derivatives(2,0);
 				poly_samples_msg.header.frame_id = "map";
 				poly_samples_msg.header.stamp = ros::Time::now();
 
