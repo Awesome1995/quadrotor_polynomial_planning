@@ -9,6 +9,7 @@
 #include "tf/tf.h"
 #include <mutex>
 #include "WaypointInterpolator.h"
+#include <thread>
 
 
 class PlanMinimumSnapNode {
@@ -16,6 +17,9 @@ public:
 
 	PlanMinimumSnapNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
 		gotPose = gotVelocity = gotWaypoints = false;
+
+		eval_thread = std::thread(&PlanMinimumSnapNode::some_function, this);
+
 		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
 		velocity_sub = nh.subscribe(velocity_topic, 1, &PlanMinimumSnapNode::OnVelocity, this);
@@ -52,7 +56,6 @@ public:
 	}
 
 	void computeMinSnapNode() {
-		std::cout << "computing " << std::endl;
 		waypoint_interpolator.setWayPoints(waypoints_matrix);
 		waypoint_interpolator.setCurrentVelocities(velocity_x_y_z_yaw);
 		waypoint_interpolator.setCurrentPositions(pose_x_y_z_yaw);
@@ -61,8 +64,8 @@ public:
 
 		std::cout << "Computed quad splines successfully " << std::endl;
 
-		
-		// put the quad spline into a message
+
+		// put the quad spline into a thread
 
 		mutex.lock();
 		gotPose = gotVelocity = gotWaypoints = false;
@@ -71,9 +74,14 @@ public:
 
 private:
 
+	void some_function() {
+		while (true) {
+			std::cout << "I'm in some function " << std::endl;
+			usleep(10000);
+		}
+	}
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
-		std::cout << "Got pose " << std::endl;
 		// store it as Eigen vector
 		pose_x_y_z_yaw << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, tf::getYaw(pose.pose.orientation);
 		//std::cout << "How's my eigen vector for pose? " << pose_x_y_z_yaw << std::endl;
@@ -83,7 +91,6 @@ private:
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
-		std::cout << "Got velocity " << std::endl;
 		// store it as Eigen vector
 		velocity_x_y_z_yaw << twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z, 0.0; // NOTE: would definitely be preferable to actually use the yawdot coming from state estimator
 		//std::cout << "How's my eigen vector for velocity? " << velocity_x_y_z_yaw << std::endl;
@@ -93,7 +100,6 @@ private:
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
-		std::cout << "Got waypoints" << std::endl;
 		// store as Eigen matrix
 		int counter = 0;
 		size_t num_waypoints = std::min(5, (int) waypoints.poses.size());
@@ -128,6 +134,8 @@ private:
 	std::mutex mutex;
 
 	WaypointInterpolator waypoint_interpolator;
+
+	std::thread eval_thread;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
