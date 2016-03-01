@@ -67,5 +67,64 @@ private:
 
 };
 
+/**
+ * Builds a matrix such that A*p = V, where V(ii) is the ii'th derivative at t=tau and p is a vector of polynomial coefficients
+ *
+ * The number of derivatives is given by A_derivative.rows(), and the order of the polynomial is A_derivative.cols()-1
+ */
+void polyGetDerivativeMatrix(double tau, Eigen::MatrixXd & A_derivative, double t_scale = 1.0);
+
+/**
+ * Builds a cost matrix such Q, that sum_dd der_costs(dd)*p^(dd)^T*Q*p^(dd) is the integral of p^2(t) from 0 to tau
+ */
+void polyGetCostMatrix(double tau, Eigen::MatrixXd & Q, const Eigen::VectorXd & der_costs);
+
+/**
+ * optimizes a polynomial subject to derivative constraints and t=0 and t=tau and cost on the integral of the squared derivatives
+ *
+ * the 0th derivative is the polynomial itself and so on
+ */
+Polynomial polyQuadDerOpt(double tau, const Eigen::VectorXd & der_0, const Eigen::VectorXd & der_final,
+                          const Eigen::VectorXd & der_costs, double * cost = NULL);
+
+int sign(int v);
+
+void polyQaudDerOptPiecewiseIndexMap(int N_extra_constraints, int D, int N_poly, int K,
+                                     Eigen::VectorXi & index_kk_to_BR);
+
+/**
+ * Jointly optimizes a set of polynomials
+ *
+ * intermediate_der is a matrix with fixed derivatives occupying the first intermediate_ders_fixed rows
+ * the rest of the rows are occupied by offset constraints.  Leave intermediate_ders_fixed = 0 to only specify offsets,
+ * otherwise set it to the correct number to constrain derivatives.
+ *
+ */
+void polyQuadDerOptPiecewise(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,
+                             const Eigen::VectorXd & der_final, const Eigen::VectorXd & der_costs, const Eigen::MatrixXd & intermediate_der,
+                             Polynomial * polys[], double * cost = NULL, int intermediate_ders_fixed = 0);
+
+/**
+ * Jointly optimizes a set of polynomials, solving directly for the waypoint derivatives
+ *
+ * syntax and use are the same as polyQuadDerOptPiecewise (above), except that this function takes in the matrix argument
+ * opt_ders in order to return the matrix of optimal waypoint derivatives in addition to the optimal polynomials
+ *
+ * enforcing derivative offsets has NOT yet been implemented in this method
+ *
+ */
+void polyOptPiecewiseDers(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,
+                          const Eigen::VectorXd & der_final, const Eigen::VectorXd & der_costs, const Eigen::MatrixXd & intermediate_der,
+                          Polynomial * polys[], Eigen::MatrixXd & opt_ders, double * cost = NULL, int intermediate_ders_fixed = 0);
+
+/*
+ * Same as above, only this one uses sparse matrices internally for speed/scalability
+ */
+void polyOptPiecewiseDersSparse(const Eigen::VectorXd & taus, const Eigen::VectorXd & der_0,
+                                const Eigen::VectorXd & der_final, const Eigen::VectorXd & der_costs, const Eigen::MatrixXd & intermediate_der,
+                                Polynomial * polys[], Eigen::MatrixXd & opt_ders, Eigen::VectorXd & costs, int intermediate_ders_fixed = 0);
+
+void freeTripletVector(std::vector<Trip *> & ptr_list);
+
 
 #endif //SPLINES_OPTIMALPIECEWISEPOLYNOMIALGENERATOR_H

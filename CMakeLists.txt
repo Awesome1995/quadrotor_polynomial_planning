@@ -37,10 +37,6 @@ add_library( Polynomial src/Polynomial.cpp)
 add_library( PolysAndQuadSplines src/PiecewisePolynomial.cpp src/QuadSpline.cpp src/OptimalPiecewisePolynomialGenerator.cpp src/TimeOptimizedQuadSplineGenerator.cpp)
 add_library( WaypointsAndSequencing src/WaypointInterpolator.cpp src/QuadSplineSequencer.cpp)
 
-
-add_executable( polyTest tests/poly-test.cpp )
-target_link_libraries(polyTest Polynomial)
-target_link_libraries(polyTest PolysAndQuadSplines)
 target_link_libraries( PolysAndQuadSplines Polynomial )
 target_link_libraries( WaypointsAndSequencing PolysAndQuadSplines )
 target_link_libraries(plan_minimum_snap_node WaypointsAndSequencing)
