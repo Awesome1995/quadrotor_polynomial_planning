@@ -6,6 +6,7 @@
 #include "acl_fsw/QuadGoal.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
+#include "tf/tf.h"
 
 
 class PlanMinimumSnapNode {
@@ -43,20 +44,27 @@ public:
 
 private:
 
-	void OnWaypoints(nav_msgs::Path const& waypoints) {
-		std::cout << "Got waypoints" << std::endl;
 
-		gotWaypoints = true;
-	}
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
 		std::cout << "Got pose " << std::endl;
-		gotPose = true;
+		// store it as Eigen vector
+		pose_x_y_z_yaw << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, tf::getYaw(pose.pose.orientation);
+		std::cout << "How's my eigen vector for pose? " << pose_x_y_z_yaw << std::endl;
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
 		std::cout << "Got velocity " << std::endl;
-		gotVelocity = true;
+		// store it as Eigen vector
+	}
+
+	void OnWaypoints(nav_msgs::Path const& waypoints) {
+		std::cout << "Got waypoints" << std::endl;
+		// store as Eigen vector
+
+
+
+
 	}
 
 
@@ -66,14 +74,13 @@ private:
 	ros::Publisher local_goal_pub;
 	ros::Publisher poly_samples_pub;
 
-
-	bool gotWaypoints;
-	bool gotPose;
-	bool gotVelocity;
-
 	nav_msgs::Path waypoints;
-	geometry_msgs::PoseStamped pose;
-	geometry_msgs::TwistStamped twist;
+
+	Eigen::Vector4d pose_x_y_z_yaw;
+	Eigen::Vector4d velocity_x_y_z_yaw;
+
+public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 
