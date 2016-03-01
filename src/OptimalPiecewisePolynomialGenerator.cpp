@@ -73,7 +73,6 @@ void OptimalPiecewisePolynomialGenerator::initializeInitialHigherOrderDerivative
 }
 
 
-
 void OptimalPiecewisePolynomialGenerator::setFinalPositionConstraint(const double final_position) {
     // In future, this may get from published waypoints
     this->final_position = final_position;

@@ -18,7 +18,6 @@ public:
 	PlanMinimumSnapNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
 		gotPose = gotVelocity = gotWaypoints = false;
 		quad_spline_exists = false;
-		counter=0;
 
 		eval_thread = std::thread(&PlanMinimumSnapNode::eval_thread_function, this);
 
@@ -30,25 +29,10 @@ public:
 
 		poly_samples_pub = nh.advertise<geometry_msgs::PoseStamped>(samples_topic, 1);
 
-		std::cout << "Sleeping" << std::endl;
+		std::cout << "Sleeping while initializing the minimum snap node" << std::endl;
 		sleep(2);
 		std::cout << "Done sleeping" << std::endl;
 
-	}
-
-
-	void publishOdomPoints(Eigen::MatrixXd & poly_samples) {
-
-		for (int i = 0 ; i < poly_samples.cols(); i++ ) {
-			nav_msgs::Odometry poly_samples_msg;
-			Eigen::VectorXd point = poly_samples.col(i);
-			poly_samples_msg.pose.pose.position.x = point[0];
-			poly_samples_msg.header.frame_id = "map";
-			poly_samples_msg.header.stamp = ros::Time::now();
-
-			poly_samples_pub.publish(poly_samples_msg);
-			ros::spinOnce();
-		}
 	}
 
 	bool readyToCompute() {
@@ -62,13 +46,7 @@ public:
 		waypoint_interpolator.setTausWithHeuristic();
 		waypoint_interpolator.computeQuadSplineWithFixedTimeSegments();
 
-		std::cout << "Computed quad splines successfully " << std::endl;
 		quad_spline_exists = true;
-		std::cout << counter << " evals before last spline" << std::endl;
-		counter=0;
-
-
-		// put the quad spline into a thread
 
 		mutex.lock();
 		gotPose = gotVelocity = gotWaypoints = false;
@@ -83,14 +61,9 @@ private:
 
 		while (ros::ok()) {
 			if (quad_spline_exists) {
-				//std::cout << "I'm in some function and counter is " << counter << std::endl;
-				std::cout << "also the current derivs of quad splines is" <<
-				waypoint_interpolator.getCurrentDerivativesOfQuadSpline() << std::endl;
-				
-				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
-				
 
-				// create a acl_fsw::QuadGoal local_goal_msg
+				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+
 				acl_fsw::QuadGoal local_goal_msg;
 				local_goal_msg.pos.x = current_derivatives(0,0);
 				local_goal_msg.pos.y = current_derivatives(1,0);
@@ -110,8 +83,6 @@ private:
 
 				local_goal_pub.publish(local_goal_msg);
 
-				counter++;
-
 				geometry_msgs::PoseStamped poly_samples_msg;
 				poly_samples_msg.pose.position.x = current_derivatives(0,0);
 				poly_samples_msg.pose.position.y = current_derivatives(1,0);
@@ -129,33 +100,27 @@ private:
 	}
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
-		// store it as Eigen vector
 		pose_x_y_z_yaw << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, tf::getYaw(pose.pose.orientation);
-		//std::cout << "How's my eigen vector for pose? " << pose_x_y_z_yaw << std::endl;
 		mutex.lock();
 		gotPose = true;
 		mutex.unlock();
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
-		// store it as Eigen vector
 		velocity_x_y_z_yaw << twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z, 0.0; // NOTE: would definitely be preferable to actually use the yawdot coming from state estimator
-		//std::cout << "How's my eigen vector for velocity? " << velocity_x_y_z_yaw << std::endl;
 		mutex.lock();
 		gotVelocity = true;
 		mutex.unlock();
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
-		// store as Eigen matrix
-		int counter = 0;
-		size_t num_waypoints = std::min(10, (int) waypoints.poses.size());
+		int max_waypoints = 10;															// Currently hard-coded to look at up to next 10 waypoints.  Will be better to switch this to a distance-cutoff receding horizon
+		size_t num_waypoints = std::min(max_waypoints, (int) waypoints.poses.size());
 		waypoints_matrix.resize(4,num_waypoints);
 		for (int i = 0; i < num_waypoints; i++) {
 			auto const& waypoint_i = waypoints.poses[i];
 			waypoints_matrix.col(i) << waypoint_i.pose.position.x, waypoint_i.pose.position.y, waypoint_i.pose.position.z, 0.0; // if we want yaw poses from waypoints, use instead tf::getYaw(waypoint_i.pose.orientation)
 		}
-		//std::cout << waypoints_matrix << std::endl;
 		mutex.lock();
 		gotWaypoints = true;
 		mutex.unlock();
@@ -184,12 +149,10 @@ private:
 	WaypointInterpolator waypoint_interpolator;
 
 	std::thread eval_thread;
-	int counter;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-
 
 
 int main(int argc, char* argv[]) {
@@ -201,8 +164,6 @@ int main(int argc, char* argv[]) {
 	// PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
 	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/RQ01/pose", "/RQ01/vel", "/goal_passthrough", "/poly_samples");
 
-
-	//minimum_snap_node.publishOdomPoints(samples);
 
 	while (ros::ok()) {
 		if (!plan_minimum_snap_node.readyToCompute()) {
