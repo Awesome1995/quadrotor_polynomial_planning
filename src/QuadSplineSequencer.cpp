@@ -14,7 +14,7 @@ double QuadSplineSequencer::getTime() {
     using namespace std::chrono;
     this->t2 = high_resolution_clock::now();
     duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-    std::cout << "Time for eval is now " << time_span.count() << std::endl;
+    //std::cout << "Time for eval is now " << time_span.count() << std::endl;
     return time_span.count();
 }
 

@@ -17,6 +17,8 @@ public:
 
 	PlanMinimumSnapNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
 		gotPose = gotVelocity = gotWaypoints = false;
+		quad_spline_exists = false;
+		counter=0;
 
 		eval_thread = std::thread(&PlanMinimumSnapNode::some_function, this);
 
@@ -63,6 +65,9 @@ public:
 		waypoint_interpolator.computeQuadSplineWithFixedTimeSegments();
 
 		std::cout << "Computed quad splines successfully " << std::endl;
+		quad_spline_exists = true;
+		std::cout << counter << " evals before last spline" << std::endl;
+		counter=0;
 
 
 		// put the quad spline into a thread
@@ -75,9 +80,15 @@ public:
 private:
 
 	void some_function() {
-		while (true) {
-			std::cout << "I'm in some function " << std::endl;
-			usleep(10000);
+		while (ros::ok()) {
+			if (quad_spline_exists) {
+				std::cout << "I'm in some function and counter is " << counter << std::endl;
+//				std::cout << "also the current derivs of quad splines is" <<
+//				waypoint_interpolator.getCurrentDerivativesOfQuadSpline() << std::endl;
+				waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+				counter++;
+			}
+			usleep(100);
 		}
 	}
 
@@ -130,12 +141,14 @@ private:
 	Eigen::MatrixXd waypoints_matrix;
 
 	bool gotPose, gotVelocity, gotWaypoints;
+	bool quad_spline_exists;
 
 	std::mutex mutex;
 
 	WaypointInterpolator waypoint_interpolator;
 
 	std::thread eval_thread;
+	int counter;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
