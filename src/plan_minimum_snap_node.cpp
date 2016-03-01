@@ -42,8 +42,16 @@ public:
 		}
 	}
 
-private:
+	bool readyToCompute() {
+		return gotPose && gotVelocity && gotWaypoints;
+	}
 
+	void computeMinSnapNode() {
+
+		std::cout << "computing " << std::endl;
+	}
+
+private:
 
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
@@ -51,6 +59,7 @@ private:
 		// store it as Eigen vector
 		pose_x_y_z_yaw << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, tf::getYaw(pose.pose.orientation);
 		//std::cout << "How's my eigen vector for pose? " << pose_x_y_z_yaw << std::endl;
+		gotPose = true;
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
@@ -58,14 +67,12 @@ private:
 		// store it as Eigen vector
 		velocity_x_y_z_yaw << twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z, 0.0; // NOTE: would definitely be preferable to actually use the yawdot coming from state estimator
 		//std::cout << "How's my eigen vector for velocity? " << velocity_x_y_z_yaw << std::endl;
+		gotVelocity = true;
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
 		std::cout << "Got waypoints" << std::endl;
-		// store as Eigen vector
-
-		//std::cout << "What does waypoint list look like  " << waypoints.poses <<std::endl;
-
+		// store as Eigen matrix
 		int counter = 0;
 		size_t num_waypoints = std::min(5, (int) waypoints.poses.size());
 		waypoints_matrix.resize(4,num_waypoints);
@@ -73,9 +80,8 @@ private:
 			auto const& waypoint_i = waypoints.poses[i];
 			waypoints_matrix.col(i) << waypoint_i.pose.position.x, waypoint_i.pose.position.y, waypoint_i.pose.position.z, 0.0; // if we want yaw poses from waypoints, use instead tf::getYaw(waypoint_i.pose.orientation)
 		}
-
-		std::cout << waypoints_matrix << std::endl;
-		
+		//std::cout << waypoints_matrix << std::endl;
+		gotWaypoints = true;
 	}
 
 
@@ -93,6 +99,8 @@ private:
 	Eigen::Vector4d velocity_x_y_z_yaw;
 	Eigen::MatrixXd waypoints_matrix;
 
+	bool gotPose, gotVelocity, gotWaypoints;
+
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -109,5 +117,13 @@ int main(int argc, char* argv[]) {
 
 	//minimum_snap_node.publishOdomPoints(samples);
 
+	while (ros::ok()) {
+		if (!plan_minimum_snap_node.readyToCompute()) {
+			ros::spinOnce();
+		}
+		else {
+			plan_minimum_snap_node.computeMinSnapNode();
+		}
+	}
 	ros::spin();
 }
