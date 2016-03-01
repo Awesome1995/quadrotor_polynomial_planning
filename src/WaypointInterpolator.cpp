@@ -22,6 +22,13 @@ void WaypointInterpolator::setCurrentVelocities(const Eigen::VectorXd current_ve
     this->current_velocities = current_velocities;
 };
 
+void WaypointInterpolator::setCurrentPositions(const Eigen::VectorXd current_positions) {
+    // this for example would be called in order to pass in the current velocities
+    // format of velocities vector should be:
+    // x_velocity, y_velocity, z_velocity, yaw_velocity
+    waypoints.col(0) << current_positions;
+};
+
 void WaypointInterpolator::setTausWithHeuristic() {
     // currently my heuristic is to take the square root of the euclidean distance
 

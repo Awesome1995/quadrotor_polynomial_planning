@@ -8,12 +8,14 @@
 #include "geometry_msgs/TwistStamped.h"
 #include "tf/tf.h"
 #include <mutex>
+#include "WaypointInterpolator.h"
 
 
 class PlanMinimumSnapNode {
 public:
 
 	PlanMinimumSnapNode(ros::NodeHandle & nh, std::string const& waypoint_topic, std::string const& pose_topic, std::string const& velocity_topic, std::string const& local_goal_topic, std::string const& samples_topic) {
+		gotPose = gotVelocity = gotWaypoints = false;
 		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
 		velocity_sub = nh.subscribe(velocity_topic, 1, &PlanMinimumSnapNode::OnVelocity, this);
@@ -21,6 +23,8 @@ public:
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 
 		poly_samples_pub = nh.advertise<nav_msgs::Odometry>(samples_topic, 1);
+
+
 
 		std::cout << "Sleeping" << std::endl;
 		sleep(2);
@@ -49,12 +53,19 @@ public:
 
 	void computeMinSnapNode() {
 
-
 		std::cout << "computing " << std::endl;
+		waypoint_interpolator.setWayPoints(waypoints_matrix);
+		waypoint_interpolator.setCurrentVelocities(velocity_x_y_z_yaw);
+		waypoint_interpolator.setCurrentPositions(pose_x_y_z_yaw);
+		waypoint_interpolator.setTausWithHeuristic();
+		waypoint_interpolator.computeQuadSplineWithFixedTimeSegments();
+
+		std::cout << "Computed quad splines successfully " << std::endl;
 
 		mutex.lock();
 		gotPose = gotVelocity = gotWaypoints = false;
 		mutex.unlock();
+
 	}
 
 private:
@@ -115,6 +126,8 @@ private:
 
 	std::mutex mutex;
 
+	WaypointInterpolator waypoint_interpolator;
+
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -128,6 +141,8 @@ int main(int argc, char* argv[]) {
 	ros::NodeHandle nh;
 
 	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
+
+
 
 	//minimum_snap_node.publishOdomPoints(samples);
 

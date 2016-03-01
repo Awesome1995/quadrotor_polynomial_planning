@@ -14,6 +14,7 @@ class WaypointInterpolator {
 public:
     void setWayPoints(const Eigen::MatrixXd waypoints);
     void setCurrentVelocities(const Eigen::VectorXd current_velocities);
+    void setCurrentPositions(const Eigen::VectorXd current_positions);
     void setTausWithHeuristic();
     void computeQuadSplineWithFixedTimeSegments();
     Eigen::MatrixXd getCurrentDerivativesOfQuadSpline();
