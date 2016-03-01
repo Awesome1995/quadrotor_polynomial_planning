@@ -86,7 +86,30 @@ private:
 				//std::cout << "I'm in some function and counter is " << counter << std::endl;
 				std::cout << "also the current derivs of quad splines is" <<
 				waypoint_interpolator.getCurrentDerivativesOfQuadSpline() << std::endl;
+				
 				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+				
+
+				// create a acl_fsw::QuadGoal local_goal_msg
+				acl_fsw::QuadGoal local_goal_msg;
+				local_goal_msg.pos.x = current_derivatives(0,0);
+				local_goal_msg.pos.y = current_derivatives(1,0);
+				local_goal_msg.pos.z = current_derivatives(2,0);
+				local_goal_msg.yaw   = current_derivatives(3,0);
+
+				local_goal_msg.vel.x = current_derivatives(0,1);
+				local_goal_msg.vel.y = current_derivatives(1,1);
+				local_goal_msg.vel.z = current_derivatives(2,1);
+				local_goal_msg.dyaw  = current_derivatives(3,1);
+
+				local_goal_msg.accel.x = current_derivatives(0,2);
+				local_goal_msg.accel.y = current_derivatives(1,2);
+
+				local_goal_msg.jerk.x = current_derivatives(0,3);
+				local_goal_msg.jerk.y = current_derivatives(1,3);
+
+				local_goal_pub.publish(local_goal_msg);
+
 				counter++;
 
 				geometry_msgs::PoseStamped poly_samples_msg;
