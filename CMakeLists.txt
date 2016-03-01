@@ -28,7 +28,6 @@ catkin_package(
 include_directories ( src )
 include_directories( ${EIGEN3_INCLUDE_DIR} )
 include_directories( ${catkin_INCLUDE_DIRS} )
-include_directories(${CATKIN_DEVEL_PREFIX}/../external/pronto-distro/build/include) #for eigen_utils
 
 
 add_executable( plan_minimum_snap_node src/plan_minimum_snap_node.cpp)
