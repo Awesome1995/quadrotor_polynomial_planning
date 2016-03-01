@@ -116,7 +116,7 @@ private:
 				poly_samples_msg.pose.position.x = current_derivatives(0,0);
 				poly_samples_msg.pose.position.y = current_derivatives(1,0);
 				poly_samples_msg.pose.position.z = current_derivatives(2,0);
-				poly_samples_msg.header.frame_id = "map";
+				poly_samples_msg.header.frame_id = "world";
 				poly_samples_msg.header.stamp = ros::Time::now();
 
 				poly_samples_pub.publish(poly_samples_msg);
@@ -149,7 +149,7 @@ private:
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
 		// store as Eigen matrix
 		int counter = 0;
-		size_t num_waypoints = std::min(5, (int) waypoints.poses.size());
+		size_t num_waypoints = std::min(10, (int) waypoints.poses.size());
 		waypoints_matrix.resize(4,num_waypoints);
 		for (int i = 0; i < num_waypoints; i++) {
 			auto const& waypoint_i = waypoints.poses[i];
@@ -198,7 +198,9 @@ int main(int argc, char* argv[]) {
 	ros::init(argc, argv, "PlanMinimumSnapNode");
 	ros::NodeHandle nh;
 
-	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
+	// PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
+	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/RQ01/pose", "/RQ01/vel", "/goal_passthrough", "/poly_samples");
+
 
 	//minimum_snap_node.publishOdomPoints(samples);
 
