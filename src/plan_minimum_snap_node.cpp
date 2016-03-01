@@ -7,6 +7,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "tf/tf.h"
+#include <mutex>
 
 
 class PlanMinimumSnapNode {
@@ -48,7 +49,12 @@ public:
 
 	void computeMinSnapNode() {
 
+
 		std::cout << "computing " << std::endl;
+
+		mutex.lock();
+		gotPose = gotVelocity = gotWaypoints = false;
+		mutex.unlock();
 	}
 
 private:
@@ -59,7 +65,9 @@ private:
 		// store it as Eigen vector
 		pose_x_y_z_yaw << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, tf::getYaw(pose.pose.orientation);
 		//std::cout << "How's my eigen vector for pose? " << pose_x_y_z_yaw << std::endl;
+		mutex.lock();
 		gotPose = true;
+		mutex.unlock();
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
@@ -67,7 +75,9 @@ private:
 		// store it as Eigen vector
 		velocity_x_y_z_yaw << twist.twist.linear.x, twist.twist.linear.y, twist.twist.linear.z, 0.0; // NOTE: would definitely be preferable to actually use the yawdot coming from state estimator
 		//std::cout << "How's my eigen vector for velocity? " << velocity_x_y_z_yaw << std::endl;
+		mutex.lock();
 		gotVelocity = true;
+		mutex.unlock();
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
@@ -81,7 +91,9 @@ private:
 			waypoints_matrix.col(i) << waypoint_i.pose.position.x, waypoint_i.pose.position.y, waypoint_i.pose.position.z, 0.0; // if we want yaw poses from waypoints, use instead tf::getYaw(waypoint_i.pose.orientation)
 		}
 		//std::cout << waypoints_matrix << std::endl;
+		mutex.lock();
 		gotWaypoints = true;
+		mutex.unlock();
 	}
 
 
@@ -100,6 +112,8 @@ private:
 	Eigen::MatrixXd waypoints_matrix;
 
 	bool gotPose, gotVelocity, gotWaypoints;
+
+	std::mutex mutex;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
