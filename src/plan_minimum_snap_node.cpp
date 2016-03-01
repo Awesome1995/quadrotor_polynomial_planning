@@ -20,7 +20,7 @@ public:
 		quad_spline_exists = false;
 		counter=0;
 
-		eval_thread = std::thread(&PlanMinimumSnapNode::some_function, this);
+		eval_thread = std::thread(&PlanMinimumSnapNode::eval_thread_function, this);
 
 		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
@@ -29,8 +29,6 @@ public:
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 
 		poly_samples_pub = nh.advertise<nav_msgs::Odometry>(samples_topic, 1);
-
-
 
 		std::cout << "Sleeping" << std::endl;
 		sleep(2);
@@ -79,17 +77,32 @@ public:
 
 private:
 
-	void some_function() {
+	void eval_thread_function() {
+
+		ros::Rate spin_rate(100);
+
 		while (ros::ok()) {
 			if (quad_spline_exists) {
-				std::cout << "I'm in some function and counter is " << counter << std::endl;
-//				std::cout << "also the current derivs of quad splines is" <<
-//				waypoint_interpolator.getCurrentDerivativesOfQuadSpline() << std::endl;
-				waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+				//std::cout << "I'm in some function and counter is " << counter << std::endl;
+				std::cout << "also the current derivs of quad splines is" <<
+				waypoint_interpolator.getCurrentDerivativesOfQuadSpline() << std::endl;
+				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
 				counter++;
+
+				nav_msgs::Odometry poly_samples_msg;
+				poly_samples_msg.pose.pose.position.x = current_derivatives(0,0);
+				poly_samples_msg.pose.pose.position.x = current_derivatives(1,0);
+				poly_samples_msg.pose.pose.position.x = current_derivatives(2,0);
+				poly_samples_msg.header.frame_id = "map";
+				poly_samples_msg.header.stamp = ros::Time::now();
+
+				poly_samples_pub.publish(poly_samples_msg);
+				ros::spinOnce();
+
 			}
-			usleep(100);
+			spin_rate.sleep();
 		}
+
 	}
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
@@ -163,8 +176,6 @@ int main(int argc, char* argv[]) {
 	ros::NodeHandle nh;
 
 	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
-
-
 
 	//minimum_snap_node.publishOdomPoints(samples);
 
