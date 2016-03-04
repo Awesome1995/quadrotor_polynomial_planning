@@ -72,9 +72,11 @@ class master:
 		# ROS initialization
 		self.pubOdom = rospy.Publisher('/odom', Float64, queue_size=1)
 		self.coeff_sub = rospy.Subscriber('/coeffs',Coeff, self.coeffs_CB)
+		self.goal_passthrough = rospy.Subscriber("/goal_passthrough", QuadGoal, queue_size=1)
 		self.pubGoal = rospy.Publisher('goal', QuadGoal, queue_size=1)
 		self.pose_sub  = rospy.Subscriber('pose', PoseStamped, self.pose_CB)
 		self.command = rospy.Subscriber("/flight/command", FlightCommand, self.commandCB)
+		
 
 		self.pose = Pose()
 		self.goal = QuadGoal()
