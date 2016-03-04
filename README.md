@@ -5,6 +5,7 @@ Receives a waypoint list and either generates splines or linear segments.
 
 ### Maintainer ###
 * Brett Lopez (btlopez@mit.edu)
+* Pete Florence (peteflo@csail.mit.edu)
 
 ### Usage ###
 roslaunch splines splines.launch 
