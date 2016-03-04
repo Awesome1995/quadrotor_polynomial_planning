@@ -39,7 +39,16 @@ void WaypointInterpolator::setTausWithHeuristic() {
         double y1 = waypoints(1,i); double y2 = waypoints(1,i+1);
         double z1 = waypoints(2,i); double z2 = waypoints(2,i+1);
         euclidean_distance_xyz(i) = std::sqrt( std::pow(x2-x1, 2) + std::pow(y2-y1, 2) + std::pow(z2-z1, 2) );
-        taus(i) = std::sqrt(euclidean_distance_xyz(i));
+        // For going ~ 1 m / s
+        taus(i) = euclidean_distance_xyz(i);
+
+        // // For going ~ 3 m / s
+        // if (euclidean_distance_xyz(i) < 9.0/4.0) { 
+        //     taus(i) = std::sqrt(euclidean_distance_xyz(i)); 
+        // }
+        // else { 
+        //     taus(i) = euclidean_distance_xyz(i) / 3;
+        // }
     }
 
 };
