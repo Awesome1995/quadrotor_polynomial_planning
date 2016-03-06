@@ -18,3 +18,7 @@ Eigen::MatrixXd QuadSpline::evalDerivativesAtTime(const double t) const{
     return derivatives_at_current_time;
 
 };
+
+double QuadSpline::getTotalTime() const {
+    return x_optimal_piecewise_poly.piecewise_poly.getFinalTime();
+};

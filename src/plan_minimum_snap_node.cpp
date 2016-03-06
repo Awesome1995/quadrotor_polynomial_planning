@@ -86,11 +86,15 @@ private:
 				nav_msgs::Path poly_samples_msg;
 
 				size_t samples = 100;
-				double dt = 1/(samples-1);
+				double final_time = waypoint_interpolator.getTotalTime();
+				double dt = final_time/(samples-1);
+				double t;
 
-				poly_samples_msg.poses[0].pose.position.x =  current_derivatives(0,0);
-				poly_samples_msg.poses[0].pose.position.x = current_derivatives(1,0);
-				poly_samples_msg.poses[0].pose.position.x = current_derivatives(2,0);
+				for (size_t i = 0; i < samples; i++) {
+					t = i * dt;
+					Eigen::MatrixXd derivatives = waypoint_interpolator.getDerivativesOfQuadSplineAtTime(t);
+					poly_samples_msg.poses.push_back(PoseFromDerivativeMatrix(derivatives));
+				}
 
 				poly_samples_msg.header.frame_id = "world";
 				poly_samples_msg.header.stamp = ros::Time::now();
@@ -102,6 +106,16 @@ private:
 			spin_rate.sleep();
 		}
 
+	}
+
+	geometry_msgs::PoseStamped PoseFromDerivativeMatrix(Eigen::MatrixXd derivatives) {
+		geometry_msgs::PoseStamped pose;
+		pose.pose.position.x = derivatives(0,0);
+		pose.pose.position.y = derivatives(1,0);
+		pose.pose.position.z = derivatives(2,0);
+		pose.header.frame_id = "world";
+		pose.header.stamp = ros::Time::now();
+		return pose;
 	}
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {

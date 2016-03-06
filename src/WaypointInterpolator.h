@@ -19,8 +19,7 @@ public:
     void computeQuadSplineWithFixedTimeSegments();
     Eigen::MatrixXd getCurrentDerivativesOfQuadSpline();
     Eigen::MatrixXd getDerivativesOfQuadSplineAtTime(double t);
-
-
+    double getTotalTime() const { return quad_spline.getTotalTime();};
 
 private:
     OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;
