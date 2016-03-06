@@ -56,7 +56,7 @@ public:
   /**
    * evaluates derivative at t
    */
-  double eval(double t, int derivative);
+  double eval(double t, int derivative) const;
 
 
   /**

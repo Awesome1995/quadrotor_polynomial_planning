@@ -30,7 +30,7 @@ double Polynomial::HornersEval(double t)
 /**
  * evaluates derivative at t
  */
-double Polynomial::eval(double t, int derivative)
+double Polynomial::eval(double t, int derivative) const
 {
   double val = 0;
   double prod;

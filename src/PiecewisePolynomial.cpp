@@ -47,7 +47,7 @@ void PiecewisePolynomial::initializeTausAndTimes(Eigen::VectorXd const& taus) {
 }
 
 void PiecewisePolynomial::findIndexBinarySearch(double t, size_t index_min, size_t index_max, size_t &segment_index,
-                                                double &time_within_segment)
+                                                double &time_within_segment) const
 {
     if (t < times[0] ) {
         segment_index = 0;
@@ -88,7 +88,7 @@ double PiecewisePolynomial::HornersEval(double t)
 
 }
 
-double PiecewisePolynomial::evalDerivative(double t, int derivative)
+double PiecewisePolynomial::evalDerivative(double t, int derivative) const
 {
     std::size_t segment_index;
     double time_within_segment;

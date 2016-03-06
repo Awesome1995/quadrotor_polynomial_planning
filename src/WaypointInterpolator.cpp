@@ -41,7 +41,7 @@ void WaypointInterpolator::setTausWithHeuristic() {
         euclidean_distance_xyz(i) = std::sqrt( std::pow(x2-x1, 2) + std::pow(y2-y1, 2) + std::pow(z2-z1, 2) );
 
         // For simply averaging 1 m / s
-         taus(i) = euclidean_distance_xyz(i);
+        taus(i) = euclidean_distance_xyz(i);
 
         // Not a bad option for more aggressive, but goes fast over long distances
         //taus(i) = std::sqrt(2 * euclidean_distance_xyz(i));
@@ -78,4 +78,8 @@ void WaypointInterpolator::computeQuadSplineWithFixedTimeSegments() {
 
 Eigen::MatrixXd WaypointInterpolator::getCurrentDerivativesOfQuadSpline() {
     return quad_spline_sequencer.getDesiredDerivatives(quad_spline);
-}
+};
+
+Eigen::MatrixXd WaypointInterpolator::getDerivativesOfQuadSplineAtTime(double t) {
+    return quad_spline.evalDerivativesAtTime(t);
+};

@@ -18,6 +18,9 @@ public:
     void setTausWithHeuristic();
     void computeQuadSplineWithFixedTimeSegments();
     Eigen::MatrixXd getCurrentDerivativesOfQuadSpline();
+    Eigen::MatrixXd getDerivativesOfQuadSplineAtTime(double t);
+
+
 
 private:
     OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;

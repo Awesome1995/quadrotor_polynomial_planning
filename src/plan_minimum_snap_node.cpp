@@ -27,7 +27,7 @@ public:
 
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 
-		poly_samples_pub = nh.advertise<geometry_msgs::PoseStamped>(samples_topic, 1);
+		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
 
 		std::cout << "Sleeping while initializing the minimum snap node" << std::endl;
 		sleep(2);
@@ -83,10 +83,15 @@ private:
 
 				local_goal_pub.publish(local_goal_msg);
 
-				geometry_msgs::PoseStamped poly_samples_msg;
-				poly_samples_msg.pose.position.x = current_derivatives(0,0);
-				poly_samples_msg.pose.position.y = current_derivatives(1,0);
-				poly_samples_msg.pose.position.z = current_derivatives(2,0);
+				nav_msgs::Path poly_samples_msg;
+
+				size_t samples = 100;
+				double dt = 1/(samples-1);
+
+				poly_samples_msg.poses[0].pose.position.x =  current_derivatives(0,0);
+				poly_samples_msg.poses[0].pose.position.x = current_derivatives(1,0);
+				poly_samples_msg.poses[0].pose.position.x = current_derivatives(2,0);
+
 				poly_samples_msg.header.frame_id = "world";
 				poly_samples_msg.header.stamp = ros::Time::now();
 

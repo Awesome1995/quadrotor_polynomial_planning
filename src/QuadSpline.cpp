@@ -4,7 +4,7 @@
 
 #include "QuadSpline.h"
 
-Eigen::MatrixXd QuadSpline::evalDerivativesAtTime(const double t) {
+Eigen::MatrixXd QuadSpline::evalDerivativesAtTime(const double t) const{
     int num_derivatives_to_eval = 4;
     Eigen::MatrixXd derivatives_at_current_time = Eigen::MatrixXd(4, num_derivatives_to_eval );
 
