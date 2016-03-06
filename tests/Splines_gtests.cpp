@@ -90,8 +90,6 @@ TEST(OptimalPiecewiseTest, TestOptimalPiecewiseZeroed) {
 
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(-1), 0, 1e-9);
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(0), 0, 1e-9);
-    ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(0.75), 4, 1e-9);
-    ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(1), 4.68994, 1e-2);
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(100), 10, 1e-9);
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(1000), 10, 1e-9);
 
@@ -118,7 +116,7 @@ TEST(OptimalPiecewiseTest, TestOptimalPiecewiseWithWaypoints) {
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(-1), 0.1, 1e-9);
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(0), 0.1, 1e-9);
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(0.75), 0.75, 1e-9);
-    ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(1), 0.741665, 1e-2);
+    ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(1.25), 0.95, 1e-2);
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(100), 1.8, 1e-9);
     ASSERT_NEAR(optimal_piecewise_poly.piecewise_poly.eval(1000), 1.8, 1e-9);
 
@@ -129,7 +127,7 @@ TEST(OptimalPiecewiseTest, TestOptimalPiecewiseWithWaypoints) {
 
 TEST(WaypointInterpolatorTest, TestWithFourWaypoints) {
 
-    std::cout << "Running a test with an actual stopwatch..." << std::endl << "Please wait... (13 seconds)" << std::endl;
+    std::cout << "Running a test with an actual stopwatch..." << std::endl << "Please wait... (15 seconds)" << std::endl;
     using namespace std::chrono;
 
     WaypointInterpolator waypoint_interpolator = WaypointInterpolator();
@@ -152,12 +150,12 @@ TEST(WaypointInterpolatorTest, TestWithFourWaypoints) {
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
 
-    ASSERT_GE(1.0/time_span.count(), 200); // Assert that we can compute new quad splines at greater than 200 Hz (we only need ~10 Hz, but should be in ~500 Hz range, otherwise something is slow)
+    ASSERT_GE(1.0/time_span.count(), 100); // Assert that we can compute new quad splines at greater than 100 Hz (we only need ~10 Hz, but should be in ~500 Hz range, otherwise something is slow)
 
     Eigen::MatrixXd currentDerivs = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
     ASSERT_NEAR(waypoints(0,0), currentDerivs(0,0), 0.1); // Check that trajectory starts near first waypoint
 
-    for (int i = 0; i < 13; i ++) {
+    for (int i = 0; i < 15; i ++) {
 
         high_resolution_clock::time_point t1 = high_resolution_clock::now();
         Eigen::MatrixXd currentDerivs = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
@@ -166,11 +164,15 @@ TEST(WaypointInterpolatorTest, TestWithFourWaypoints) {
         ASSERT_GE(1.0/time_span.count(), 5000); // Assert that we can evaluate our trajectory at greater than 5 kHz (we only need ~100 Hz, but we can do this blazing fast, otherwise something is slow)
 
         //std::cout << "Current derivs are: " << std::endl << currentDerivs << std::endl;
-        ASSERT_LE(currentDerivs(0,3), 10); // Testing to make sure Snap isn't too high ever
-        ASSERT_LE(currentDerivs(1,3), 10);
-        ASSERT_LE(currentDerivs(2,3), 10);
-        ASSERT_LE(currentDerivs(3,3), 10);
-        if (i >= 10) {
+        ASSERT_LE(currentDerivs(0,2), 4); // Testing to make sure Acceleration isn't too high ever
+        ASSERT_LE(currentDerivs(1,2), 4);
+        ASSERT_LE(currentDerivs(2,2), 4);
+        ASSERT_LE(currentDerivs(3,2), 4);
+
+        double speed = std::sqrt(currentDerivs(0,1) * currentDerivs(0,1) + currentDerivs(1,1) * currentDerivs(1,1) + currentDerivs(2,1) * currentDerivs(2,1));
+        std::cout << "SPEED AT TIME " << i << " IS " << speed << std::endl;
+        ASSERT_LE(speed, 5); // Testing to make sure we never go faster than 5 m / s
+        if (i >= 22) {
             ASSERT_NEAR(waypoints(0,4), currentDerivs(0,0), 0.1); // Make sure we remain at endpoint
             ASSERT_NEAR(waypoints(1,4), currentDerivs(1,0), 0.1);
             ASSERT_NEAR(waypoints(2,4), currentDerivs(2,0), 0.1);
@@ -193,7 +195,7 @@ TEST(WaypointInterpolatorTest, TestWithTwoWaypoints) {
     waypoint_interpolator.setWayPoints(waypoints);
 
     Eigen::VectorXd current_velocities = Eigen::VectorXd(4);
-    current_velocities << 1, 3, 0.1, -1;
+    current_velocities << 0, 0, 0, 0;
 
     waypoint_interpolator.setCurrentVelocities(current_velocities);
     waypoint_interpolator.setTausWithHeuristic();
@@ -201,6 +203,15 @@ TEST(WaypointInterpolatorTest, TestWithTwoWaypoints) {
 
     Eigen::MatrixXd currentDerivs = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
     ASSERT_NEAR(waypoints(0,0), currentDerivs(0,0), 0.1); // Check that trajectory starts near first waypoint
+    std::cout << "Please wait... (15 seconds)" << std::endl;
+    for (int i = 0; i < 15; i ++) {
+        Eigen::MatrixXd currentDerivs = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+        double speed = std::sqrt(currentDerivs(0,1) * currentDerivs(0,1) + currentDerivs(1,1) * currentDerivs(1,1) + currentDerivs(2,1) * currentDerivs(2,1));
+        ASSERT_LE(speed, 5); // Testing to make sure we never go faster than 5 m / s
+        //std::cout << "SPEED AT TIME " << i << " IS " << speed << std::endl;
+        sleep(1);
+    }
+
     return;
 }
 
