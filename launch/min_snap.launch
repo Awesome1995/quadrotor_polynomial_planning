@@ -1,4 +1,5 @@
 <launch>
-    <param name="spline_horizon_distance" value="10.0" />
+    <param name="spline_horizon_distance" value="10.0" type="double"/>
+    <param name="derivative_to_minimize" value="3" type="int" />
     <node name="min_snap_node" pkg="splines" type="plan_minimum_snap_node" />
 </launch>

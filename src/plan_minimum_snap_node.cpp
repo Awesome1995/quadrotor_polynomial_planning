@@ -21,11 +21,15 @@ public:
 
 		nh.getParam("spline_horizon_distance", spline_horizon_distance);
 		nh.getParam("derivative_to_minimize", derivative_to_minimize);
-		waypoint_interpolator.setDerivativeToMinimize(derivative_to_minimize);
+		waypoint_interpolator_building.setDerivativeToMinimize(derivative_to_minimize);
+		
 
-		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
 		velocity_sub = nh.subscribe(velocity_topic, 1, &PlanMinimumSnapNode::OnVelocity, this);
+
+
+		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
+
 
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 
@@ -44,15 +48,17 @@ public:
 	};
 
 	void computeMinSnapNode() {
-		waypoint_interpolator.setWayPoints(waypoints_matrix);
-		waypoint_interpolator.setCurrentVelocities(velocity_x_y_z_yaw);
-		waypoint_interpolator.setCurrentPositions(pose_x_y_z_yaw);
-		waypoint_interpolator.setTausWithHeuristic();
-		waypoint_interpolator.computeQuadSplineWithFixedTimeSegments();
+
+		waypoint_interpolator_building.setWayPoints(waypoints_matrix);
+		waypoint_interpolator_building.setCurrentVelocities(velocity_x_y_z_yaw);
+		waypoint_interpolator_building.setCurrentPositions(pose_x_y_z_yaw);
+		waypoint_interpolator_building.setTausWithHeuristic();
+		waypoint_interpolator_building.computeQuadSplineWithFixedTimeSegments();
 
 		quad_spline_exists = true;
 
 		mutex.lock();
+		waypoint_interpolator_built = waypoint_interpolator_building;
 		gotPose = gotVelocity = gotWaypoints = false;
 		mutex.unlock();
 		std::cout << "Computed min snap" << std::endl;
@@ -68,7 +74,9 @@ private:
 			//std::cout << "eval_thread_function called" << std::endl;
 			if (quad_spline_exists) {
 
-				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+				mutex.lock();
+
+				Eigen::MatrixXd current_derivatives = waypoint_interpolator_built.getCurrentDerivativesOfQuadSpline();
 				//std::cout << "Got current derivs " << current_derivatives << std::endl;
 
 				acl_fsw::QuadGoal local_goal_msg;
@@ -93,16 +101,17 @@ private:
 				nav_msgs::Path poly_samples_msg;
 
 				size_t samples = 100;
-				double final_time = waypoint_interpolator.getTotalTime();
+				double final_time = waypoint_interpolator_built.getTotalTime();
 
 				double dt = final_time/(samples-1);
 				double t;
 
 				for (size_t i = 0; i < samples; i++) {
 					t = i * dt;
-					Eigen::MatrixXd derivatives = waypoint_interpolator.getDerivativesOfQuadSplineAtTime(t);
+					Eigen::MatrixXd derivatives = waypoint_interpolator_built.getDerivativesOfQuadSplineAtTime(t);
 					poly_samples_msg.poses.push_back(PoseFromDerivativeMatrix(derivatives));
 				}
+				mutex.unlock();
 
 				poly_samples_msg.header.frame_id = "world";
 				poly_samples_msg.header.stamp = ros::Time::now();
@@ -131,7 +140,7 @@ private:
 		mutex.lock();
 		gotPose = true;
 		mutex.unlock();
-		//std::cout << "Got pose" << std::endl;
+		std::cout << "Got pose" << std::endl;
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
@@ -139,7 +148,7 @@ private:
 		mutex.lock();
 		gotVelocity = true;
 		mutex.unlock();
-		//std::cout << "Got vel" << std::endl;
+		std::cout << "Got vel" << std::endl;
 	}
 
 	Eigen::Vector3d VectorFromPose(geometry_msgs::PoseStamped const& pose) {
@@ -158,6 +167,7 @@ private:
 		Eigen::Vector3d truncated_waypoint;
 		Eigen::Vector3d p1, p2;
 		int i;
+		std::cout << waypoints.poses.size() << " is size of waypoints" << std::endl;
 		for (i = 0; i < waypoints.poses.size() - 1; i++){
 			p1 = VectorFromPose(waypoints.poses[i]);
 			p2 = VectorFromPose(waypoints.poses[i+1]);
@@ -176,6 +186,8 @@ private:
 
 			}
 		}
+
+
 		waypoints_matrix.conservativeResize(4, i+1);
 		std::cout << distance_so_far << " is how far I have left" << std::endl;
 		std::cout << "Waypoints matrix" << std::endl;
@@ -212,7 +224,8 @@ private:
 
 	std::mutex mutex;
 
-	WaypointInterpolator waypoint_interpolator;
+	WaypointInterpolator waypoint_interpolator_building;
+	WaypointInterpolator waypoint_interpolator_built;
 
 	std::thread eval_thread;
 
