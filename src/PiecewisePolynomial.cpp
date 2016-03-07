@@ -78,12 +78,35 @@ void PiecewisePolynomial::findIndexBinarySearch(double t, size_t index_min, size
 
 }
 
+void PiecewisePolynomial::findIndexLinearSearch(double t, size_t index_min, size_t index_max, size_t &segment_index,
+                                                double &time_within_segment) const
+{
+    if (t < times[index_min]) {
+        segment_index = index_min;
+        time_within_segment = 0;
+        return;
+    }
+    else if (t > times[index_max]) {
+        segment_index = index_max;
+        time_within_segment = times[index_max];
+        return;
+    }
+    for (size_t i = index_min; i < index_max; i++) {
+        if (t >= times[i]) {
+            segment_index = i;
+            time_within_segment = t - times[i];
+            return;
+        }
+
+    }
+}
+
 double PiecewisePolynomial::HornersEval(double t)
 {
 
     std::size_t segment_index;
     double time_within_segment;
-    findIndexBinarySearch(t, segment_index, time_within_segment);
+    findIndexLinearSearch(t, segment_index, time_within_segment);
     return polynomials.at(segment_index)->HornersEval(time_within_segment);
 
 }
@@ -92,7 +115,10 @@ double PiecewisePolynomial::evalDerivative(double t, int derivative) const
 {
     std::size_t segment_index;
     double time_within_segment;
-    findIndexBinarySearch(t, segment_index, time_within_segment);
+    findIndexLinearSearch(t, segment_index, time_within_segment);
+    segment_index = 0;
+    std::cout << "SEGMENT INDEX found was " << segment_index << " NUM SEGMENTS was " << getNumSegments() << std::endl;
+    std::cout << "I have this many polys " << polynomials.size() << std::endl;
     return polynomials.at(segment_index)->eval(time_within_segment, derivative);
 }
 

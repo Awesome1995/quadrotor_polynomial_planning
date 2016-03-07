@@ -49,6 +49,13 @@ public:
     void findIndexBinarySearch(double t, std::size_t index_min, std::size_t index_max, size_t &segment_index,
                                double &time_within_segment) const;
 
+    void findIndexLinearSearch(double t, std::size_t& segment_index, double& time_within_segment) const{
+        findIndexLinearSearch(t, 0, times.size()-1, segment_index, time_within_segment);
+    };
+    void findIndexLinearSearch(double t, std::size_t index_min, std::size_t index_max, size_t &segment_index,
+                               double &time_within_segment) const;
+
+
     double HornersEval(double t);
 
     double evalDerivative(double t, int derivative) const;

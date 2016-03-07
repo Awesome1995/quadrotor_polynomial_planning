@@ -46,7 +46,7 @@ void WaypointInterpolator::setTausWithHeuristic() {
         // Not a bad option for more aggressive, but goes fast over long distances
         //taus(i) = std::sqrt(2 * euclidean_distance_xyz(i));
 
-//        // For going ~ 3 m / s
+        // For going ~ 3 m / s
 //        if (euclidean_distance_xyz(i) < 9.0/4.0) {
 //            taus(i) = std::sqrt(euclidean_distance_xyz(i));
 //        }

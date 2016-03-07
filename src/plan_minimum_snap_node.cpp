@@ -19,7 +19,7 @@ public:
 		gotPose = gotVelocity = gotWaypoints = false;
 		quad_spline_exists = false;
 
-		eval_thread = std::thread(&PlanMinimumSnapNode::eval_thread_function, this);
+
 
 		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
@@ -29,15 +29,17 @@ public:
 
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
 
-		std::cout << "Sleeping while initializing the minimum snap node" << std::endl;
-		sleep(2);
-		std::cout << "Done sleeping" << std::endl;
+		std::cout << "Finished constructing the plan min snap node" << std::endl;
 
 	}
 
 	bool readyToCompute() {
 		return gotPose && gotVelocity && gotWaypoints;
 	}
+
+	void StartEvalThread() {
+		eval_thread = std::thread(&PlanMinimumSnapNode::eval_thread_function, this);
+	};
 
 	void computeMinSnapNode() {
 		waypoint_interpolator.setWayPoints(waypoints_matrix);
@@ -51,6 +53,7 @@ public:
 		mutex.lock();
 		gotPose = gotVelocity = gotWaypoints = false;
 		mutex.unlock();
+		std::cout << "Computed min snap" << std::endl;
 	}
 
 private:
@@ -60,9 +63,11 @@ private:
 		ros::Rate spin_rate(100);
 
 		while (ros::ok()) {
+			//std::cout << "eval_thread_function called" << std::endl;
 			if (quad_spline_exists) {
 
 				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+				std::cout << "Got current derivs " << current_derivatives << std::endl;
 
 				acl_fsw::QuadGoal local_goal_msg;
 				local_goal_msg.pos.x = current_derivatives(0,0);
@@ -108,7 +113,7 @@ private:
 
 	}
 
-	geometry_msgs::PoseStamped PoseFromDerivativeMatrix(Eigen::MatrixXd derivatives) {
+	geometry_msgs::PoseStamped PoseFromDerivativeMatrix(Eigen::MatrixXd const& derivatives) {
 		geometry_msgs::PoseStamped pose;
 		pose.pose.position.x = derivatives(0,0);
 		pose.pose.position.y = derivatives(1,0);
@@ -123,6 +128,7 @@ private:
 		mutex.lock();
 		gotPose = true;
 		mutex.unlock();
+		std::cout << "Got pose" << std::endl;
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
@@ -130,6 +136,7 @@ private:
 		mutex.lock();
 		gotVelocity = true;
 		mutex.unlock();
+		std::cout << "Got vel" << std::endl;
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
@@ -143,6 +150,7 @@ private:
 		mutex.lock();
 		gotWaypoints = true;
 		mutex.unlock();
+		std::cout << "Got waypoints" << std::endl;
 	}
 
 
@@ -180,17 +188,14 @@ int main(int argc, char* argv[]) {
 	ros::init(argc, argv, "PlanMinimumSnapNode");
 	ros::NodeHandle nh;
 
-	// PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
-	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/RQ01/pose", "/RQ01/vel", "/goal_passthrough", "/poly_samples");
-
+	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
+	//PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/RQ01/pose", "/RQ01/vel", "/goal_passthrough", "/poly_samples");
+	plan_minimum_snap_node.StartEvalThread();
 
 	while (ros::ok()) {
-		if (!plan_minimum_snap_node.readyToCompute()) {
-			ros::spinOnce();
-		}
-		else {
+		if (plan_minimum_snap_node.readyToCompute()) {
 			plan_minimum_snap_node.computeMinSnapNode();
 		}
+		ros::spinOnce();
 	}
-	ros::spin();
 }
