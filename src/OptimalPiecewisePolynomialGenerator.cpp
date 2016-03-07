@@ -4,9 +4,18 @@
 
 #include "OptimalPiecewisePolynomialGenerator.h"
 
+void OptimalPiecewisePolynomialGenerator::setDerivativeToMinimize(int derivative_to_minimize) {
+
+    assert(derivative_to_minimize > 0 && derivative_to_minimize < derivatives_to_minimize.size());
+    // Choose coefficients for the derivatives to minimize in the optimization
+    // Zero-ordered index, so index=3 (fourth in list) is jerk
+    //                        index=4 (fifth in list) is snap
+    derivatives_to_minimize.setZero();
+    derivatives_to_minimize[derivative_to_minimize] = 1;
+};
+
 void OptimalPiecewisePolynomialGenerator::setUpOptimizationTest(int n_segments){
     this->n_segments = n_segments;
-    initializeOptimizationCriteria();
 
     setInitialPositionConstraint(0.0);
     setInitialVelocityConstraint(0.0);
@@ -22,7 +31,6 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimizationTest(int n_segments){
 
 void OptimalPiecewisePolynomialGenerator::setUpOptimization(int n_segments){
     this->n_segments = n_segments;
-    initializeOptimizationCriteria();
 }
 
 void OptimalPiecewisePolynomialGenerator::setUpOptimizationWithWaypoints(const Eigen::VectorXd waypoints_one_output, const double current_velocity){
@@ -31,7 +39,6 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimizationWithWaypoints(const E
     // number of segments = number of elements -1
 
     this->n_segments = waypoints_one_output.size() - 1;
-    initializeOptimizationCriteria();
 
     setInitialPositionConstraint(waypoints_one_output(0));
     setInitialVelocityConstraint(current_velocity);
@@ -45,17 +52,6 @@ void OptimalPiecewisePolynomialGenerator::setUpOptimizationWithWaypoints(const E
     setHigherOrderDerivativeWaypoints();
 
 };
-
-
-void OptimalPiecewisePolynomialGenerator::initializeOptimizationCriteria() {
-    n_derivatives_specified = 5;
-
-    derivatives_to_minimize = Eigen::VectorXd(10);
-    // Choose coefficients for the derivatives to minimize in the optimization
-    // Zero-ordered index, so index=3 (fourth in list) is jerk
-    //                        index=4 (fifth in list) is snap
-    derivatives_to_minimize << 0, 0, 0, 1, 0, 0, 0, 0, 0, 0;
-}
 
 void OptimalPiecewisePolynomialGenerator::setInitialPositionConstraint(const double initial_position) {
     // In future, this may get from state estimator

@@ -1,0 +1,14 @@
+<launch>
+
+    <param name="spline_horizon_distance" value="10.0" />
+    <node name="min_snap_node" pkg="splines" type="plan_minimum_snap_node" />
+
+    <include file="$(find perception_launch)/launch/perception_0.1.launch">
+    	<arg name="live" value="false" />
+    </include>
+
+    <include file="$(find discrete_path_planner)/launch/mdp_global_guidance.launch"/>
+
+    <node name="bag" pkg="rosbag" type="play" args="-s 115 /home/peteflo/bags_for_testing/sensors_2016-01-21-09-38-41.bag" />
+
+</launch>

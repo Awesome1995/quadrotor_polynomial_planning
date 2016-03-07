@@ -16,7 +16,9 @@ public:
     OptimalPiecewisePolynomial z_optimal_piecewise_poly;
     OptimalPiecewisePolynomial yaw_optimal_piecewise_poly;
 
-    Eigen::MatrixXd evalDerivativesAtTime(const double t);
+    Eigen::MatrixXd evalDerivativesAtTime(const double t) const;
+
+    double getTotalTime() const;
 };
 
 

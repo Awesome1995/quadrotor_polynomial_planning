@@ -4,6 +4,10 @@
 
 #include "WaypointInterpolator.h"
 
+void WaypointInterpolator::setDerivativeToMinimize(int derivative_to_minimize) {
+    optimal_piecewise_polynomial_generator.setDerivativeToMinimize(derivative_to_minimize);
+};
+
 void WaypointInterpolator::setWayPoints(const Eigen::MatrixXd waypoints) {
     // this for example would be called externally in order to pass in the waypoints matrix
     // format of waypoint matrix should be:
@@ -41,10 +45,10 @@ void WaypointInterpolator::setTausWithHeuristic() {
         euclidean_distance_xyz(i) = std::sqrt( std::pow(x2-x1, 2) + std::pow(y2-y1, 2) + std::pow(z2-z1, 2) );
 
         // For simply averaging 1 m / s
-         taus(i) = euclidean_distance_xyz(i);
+        //taus(i) = euclidean_distance_xyz(i);
 
         // Not a bad option for more aggressive, but goes fast over long distances
-        //taus(i) = std::sqrt(2 * euclidean_distance_xyz(i));
+        taus(i) = std::sqrt(2 * euclidean_distance_xyz(i));
 
 //        // For going ~ 3 m / s
 //        if (euclidean_distance_xyz(i) < 9.0/4.0) {
@@ -63,6 +67,7 @@ void WaypointInterpolator::setTausWithHeuristic() {
 void WaypointInterpolator::computeQuadSplineWithFixedTimeSegments() {
     // generate 4 optimal piecewise polys, one each for x, y, z, yaw
     // store each in the quad spline
+
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(0), current_velocities(0));
     quad_spline.x_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
 
@@ -74,8 +79,13 @@ void WaypointInterpolator::computeQuadSplineWithFixedTimeSegments() {
 
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(3), current_velocities(3));
     quad_spline.yaw_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
+
 };
 
 Eigen::MatrixXd WaypointInterpolator::getCurrentDerivativesOfQuadSpline() {
     return quad_spline_sequencer.getDesiredDerivatives(quad_spline);
-}
+};
+
+Eigen::MatrixXd WaypointInterpolator::getDerivativesOfQuadSplineAtTime(double t) {
+    return quad_spline.evalDerivativesAtTime(t);
+};

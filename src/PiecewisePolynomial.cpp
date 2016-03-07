@@ -47,7 +47,7 @@ void PiecewisePolynomial::initializeTausAndTimes(Eigen::VectorXd const& taus) {
 }
 
 void PiecewisePolynomial::findIndexBinarySearch(double t, size_t index_min, size_t index_max, size_t &segment_index,
-                                                double &time_within_segment)
+                                                double &time_within_segment) const
 {
     if (t < times[0] ) {
         segment_index = 0;
@@ -78,21 +78,43 @@ void PiecewisePolynomial::findIndexBinarySearch(double t, size_t index_min, size
 
 }
 
+void PiecewisePolynomial::findIndexLinearSearch(double t, size_t index_min, size_t index_max, size_t &segment_index,
+                                                double &time_within_segment) const
+{
+    if (t < times[0]) {
+        segment_index = 0;
+        time_within_segment = 0;
+        return;
+    }
+    else if (t > getFinalTime()) {
+        segment_index = taus.size()-1;
+        time_within_segment = taus[taus.size()-1];
+        return;
+    }
+    for (size_t i = index_min; i < index_max; i++) {
+        if (t >= times[i] && t <= times[i+1]) {
+            segment_index = i;
+            time_within_segment = t - times[i];
+            return;
+        }
+    }
+}
+
 double PiecewisePolynomial::HornersEval(double t)
 {
 
     std::size_t segment_index;
     double time_within_segment;
-    findIndexBinarySearch(t, segment_index, time_within_segment);
+    findIndexLinearSearch(t, segment_index, time_within_segment);
     return polynomials.at(segment_index)->HornersEval(time_within_segment);
 
 }
 
-double PiecewisePolynomial::evalDerivative(double t, int derivative)
+double PiecewisePolynomial::evalDerivative(double t, int derivative) const
 {
     std::size_t segment_index;
     double time_within_segment;
-    findIndexBinarySearch(t, segment_index, time_within_segment);
+    findIndexLinearSearch(t, segment_index, time_within_segment);
     return polynomials.at(segment_index)->eval(time_within_segment, derivative);
 }
 

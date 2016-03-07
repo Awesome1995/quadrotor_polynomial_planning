@@ -19,19 +19,27 @@ public:
 		gotPose = gotVelocity = gotWaypoints = false;
 		quad_spline_exists = false;
 
-		eval_thread = std::thread(&PlanMinimumSnapNode::eval_thread_function, this);
+		nh.getParam("spline_horizon_distance", spline_horizon_distance);
+		nh.getParam("derivative_to_minimize", derivative_to_minimize);
+		nh.getParam("spline_eval_rate", spline_eval_rate);
+		nh.getParam("publish_spline_path", publish_spline_path);
+		nh.getParam("max_waypoints", max_waypoints);
 
-		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
+		waypoint_interpolator_building.setDerivativeToMinimize(derivative_to_minimize);
+
+
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
 		velocity_sub = nh.subscribe(velocity_topic, 1, &PlanMinimumSnapNode::OnVelocity, this);
 
+
+		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
+
+
 		local_goal_pub = nh.advertise<acl_fsw::QuadGoal> (local_goal_topic, 1);
 
-		poly_samples_pub = nh.advertise<geometry_msgs::PoseStamped>(samples_topic, 1);
+		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
 
-		std::cout << "Sleeping while initializing the minimum snap node" << std::endl;
-		sleep(2);
-		std::cout << "Done sleeping" << std::endl;
+		std::cout << "Finished constructing the plan min snap node, waiting for waypoints" << std::endl;
 
 	}
 
@@ -39,16 +47,45 @@ public:
 		return gotPose && gotVelocity && gotWaypoints;
 	}
 
+	void StartEvalThread() {
+		eval_thread = std::thread(&PlanMinimumSnapNode::eval_thread_function, this);
+	};
+
+	void PublishSplinePath(size_t samples = 100) {
+		nav_msgs::Path poly_samples_msg;
+		poly_samples_msg.header.frame_id = "world";
+		poly_samples_msg.header.stamp = ros::Time::now();
+		double final_time = waypoint_interpolator_building.getTotalTime();
+
+		double dt = final_time/(samples-1);
+		double t;
+
+		for (size_t i = 0; i < samples; i++) {
+			t = i * dt;
+			Eigen::MatrixXd derivatives = waypoint_interpolator_building.getDerivativesOfQuadSplineAtTime(t);
+			poly_samples_msg.poses.push_back(PoseFromDerivativeMatrix(derivatives));
+		}
+		poly_samples_pub.publish(poly_samples_msg);
+	}
+
 	void computeMinSnapNode() {
-		waypoint_interpolator.setWayPoints(waypoints_matrix);
-		waypoint_interpolator.setCurrentVelocities(velocity_x_y_z_yaw);
-		waypoint_interpolator.setCurrentPositions(pose_x_y_z_yaw);
-		waypoint_interpolator.setTausWithHeuristic();
-		waypoint_interpolator.computeQuadSplineWithFixedTimeSegments();
+
+
+		waypoint_interpolator_building.setWayPoints(waypoints_matrix);
+		waypoint_interpolator_building.setCurrentVelocities(velocity_x_y_z_yaw);
+		waypoint_interpolator_building.setCurrentPositions(pose_x_y_z_yaw);
+		waypoint_interpolator_building.setTausWithHeuristic();
+		waypoint_interpolator_building.computeQuadSplineWithFixedTimeSegments();
+		ROS_INFO("Computing spline trajectory for %d waypoints", (int) waypoints_matrix.cols() );
+
+		if (publish_spline_path) {
+			PublishSplinePath();
+		};
 
 		quad_spline_exists = true;
 
 		mutex.lock();
+		waypoint_interpolator_built = waypoint_interpolator_building;
 		gotPose = gotVelocity = gotWaypoints = false;
 		mutex.unlock();
 	}
@@ -57,12 +94,14 @@ private:
 
 	void eval_thread_function() {
 
-		ros::Rate spin_rate(100);
+		ros::Rate spin_rate(spline_eval_rate);
 
 		while (ros::ok()) {
 			if (quad_spline_exists) {
 
-				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
+				mutex.lock();
+
+				Eigen::MatrixXd current_derivatives = waypoint_interpolator_built.getCurrentDerivativesOfQuadSpline();
 
 				acl_fsw::QuadGoal local_goal_msg;
 				local_goal_msg.pos.x = current_derivatives(0,0);
@@ -83,20 +122,24 @@ private:
 
 				local_goal_pub.publish(local_goal_msg);
 
-				geometry_msgs::PoseStamped poly_samples_msg;
-				poly_samples_msg.pose.position.x = current_derivatives(0,0);
-				poly_samples_msg.pose.position.y = current_derivatives(1,0);
-				poly_samples_msg.pose.position.z = current_derivatives(2,0);
-				poly_samples_msg.header.frame_id = "world";
-				poly_samples_msg.header.stamp = ros::Time::now();
+				mutex.unlock();
 
-				poly_samples_pub.publish(poly_samples_msg);
 				ros::spinOnce();
 
 			}
 			spin_rate.sleep();
 		}
 
+	}
+
+	geometry_msgs::PoseStamped PoseFromDerivativeMatrix(Eigen::MatrixXd const& derivatives) {
+		geometry_msgs::PoseStamped pose;
+		pose.pose.position.x = derivatives(0,0);
+		pose.pose.position.y = derivatives(1,0);
+		pose.pose.position.z = derivatives(2,0);
+		pose.header.frame_id = "world";
+		pose.header.stamp = ros::Time::now();
+		return pose;
 	}
 
 	void OnPose( geometry_msgs::PoseStamped const& pose ) {
@@ -113,17 +156,50 @@ private:
 		mutex.unlock();
 	}
 
+	Eigen::Vector3d VectorFromPose(geometry_msgs::PoseStamped const& pose) {
+		return Eigen::Vector3d(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
+	}
+
+
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
-		int max_waypoints = 10;															// Currently hard-coded to look at up to next 10 waypoints.  Will be better to switch this to a distance-cutoff receding horizon
-		size_t num_waypoints = std::min(max_waypoints, (int) waypoints.poses.size());
-		waypoints_matrix.resize(4,num_waypoints);
-		for (int i = 0; i < num_waypoints; i++) {
-			auto const& waypoint_i = waypoints.poses[i];
-			waypoints_matrix.col(i) << waypoint_i.pose.position.x, waypoint_i.pose.position.y, waypoint_i.pose.position.z, 0.0; // if we want yaw poses from waypoints, use instead tf::getYaw(waypoint_i.pose.orientation)
+
+		int max_waypoints = 10;
+		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints);
+
+		waypoints_matrix.resize(4, waypoints_to_check);
+		waypoints_matrix.col(0) << VectorFromPose(waypoints.poses[0]), 0.0;  // yaw is currently hard set to be 0
+		double distance_so_far = 0.0;
+		double distance_to_add;
+		double distance_left;
+		Eigen::Vector3d truncated_waypoint;
+		Eigen::Vector3d p1, p2;
+		int i;
+		for (i = 0; i < waypoints_to_check - 1; i++){
+			p1 = VectorFromPose(waypoints.poses[i]);
+			p2 = VectorFromPose(waypoints.poses[i+1]);
+			distance_to_add = (p2-p1).norm();
+			if ((distance_to_add + distance_so_far) < spline_horizon_distance) {
+				distance_so_far += distance_to_add;
+				waypoints_matrix.col(i + 1) << p2, 0.0; // yaw is currently hard set to be 0
+			}
+			else {
+				distance_left = spline_horizon_distance - distance_so_far;
+				truncated_waypoint = p1 + (p2-p1) / distance_to_add * distance_left;
+				distance_so_far = distance_so_far + distance_left;
+				waypoints_matrix.col(i + 1) << truncated_waypoint, 0.0; // yaw is currently hard set to be 0
+				i++;
+				break;
+
+			}
 		}
+
+
+		waypoints_matrix.conservativeResize(4, i+1);
+
 		mutex.lock();
 		gotWaypoints = true;
 		mutex.unlock();
+
 	}
 
 
@@ -134,19 +210,28 @@ private:
 	ros::Publisher poly_samples_pub;
 
 	nav_msgs::Path waypoints;
+	nav_msgs::Path previous_waypoints;
 
 	size_t num_waypoints;
 
+	int derivative_to_minimize;
+	double spline_eval_rate;
+	bool publish_spline_path;
+	int max_waypoints;
+
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Vector4d velocity_x_y_z_yaw;
-	Eigen::MatrixXd waypoints_matrix;
+	double spline_horizon_distance;
+	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
+
 
 	bool gotPose, gotVelocity, gotWaypoints;
 	bool quad_spline_exists;
 
 	std::mutex mutex;
 
-	WaypointInterpolator waypoint_interpolator;
+	WaypointInterpolator waypoint_interpolator_building;
+	WaypointInterpolator waypoint_interpolator_built;
 
 	std::thread eval_thread;
 
@@ -161,17 +246,14 @@ int main(int argc, char* argv[]) {
 	ros::init(argc, argv, "PlanMinimumSnapNode");
 	ros::NodeHandle nh;
 
-	// PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
-	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/RQ01/pose", "/RQ01/vel", "/goal_passthrough", "/poly_samples");
-
+	PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/FLA_ACL02/pose", "/FLA_ACL02/vel", "/goal_passthrough", "/poly_samples");
+	//PlanMinimumSnapNode plan_minimum_snap_node(nh, "/waypoint_list", "/RQ01/pose", "/RQ01/vel", "/goal_passthrough", "/poly_samples");
+	plan_minimum_snap_node.StartEvalThread();
 
 	while (ros::ok()) {
-		if (!plan_minimum_snap_node.readyToCompute()) {
-			ros::spinOnce();
-		}
-		else {
+		if (plan_minimum_snap_node.readyToCompute()) {
 			plan_minimum_snap_node.computeMinSnapNode();
 		}
+		ros::spinOnce();
 	}
-	ros::spin();
 }

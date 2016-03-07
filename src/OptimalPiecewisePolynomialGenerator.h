@@ -16,14 +16,17 @@ struct OptimalPiecewisePolynomial {
 class OptimalPiecewisePolynomialGenerator {
 public:
 
+    OptimalPiecewisePolynomialGenerator() : n_derivatives_specified(5), derivatives_to_minimize(Eigen::VectorXd(10)) {
+        setDerivativeToMinimize(3); // min jerk by default
+    };
     void setUpOptimizationTest(int n_segments);
     void setUpOptimization(int n_segments);
     void setUpOptimizationWithWaypoints(const Eigen::VectorXd waypoints, const double current_velocity);
     OptimalPiecewisePolynomial GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus);
+    void setDerivativeToMinimize(int derivative_to_minimize);
+
 
 private:
-
-    void initializeOptimizationCriteria();
 
     void setInitialPositionConstraint(const double initial_position);
     void setInitialVelocityConstraint(const double initial_velocity);

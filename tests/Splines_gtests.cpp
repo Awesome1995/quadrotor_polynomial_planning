@@ -20,7 +20,7 @@ TEST(PiecewisePolyTest, NegativeTime) {
     PiecewisePolynomial myPiecewisePolynomial = PiecewisePolynomial(order, taus);
     std::size_t segment_index;
     double time_within_segment;
-    myPiecewisePolynomial.findIndexBinarySearch(-1.0, segment_index, time_within_segment);
+    myPiecewisePolynomial.findIndexLinearSearch(-1.0, segment_index, time_within_segment);
     ASSERT_EQ(segment_index,0);
     ASSERT_LE(std::abs(time_within_segment), 1e-12);
 }
@@ -32,7 +32,7 @@ TEST(PiecewisePolyTest, TooHighTime) {
     PiecewisePolynomial myPiecewisePolynomial = PiecewisePolynomial(order, taus);
     std::size_t segment_index;
     double time_within_segment;
-    myPiecewisePolynomial.findIndexBinarySearch(1e3, segment_index, time_within_segment);
+    myPiecewisePolynomial.findIndexLinearSearch(1e3, segment_index, time_within_segment);
     ASSERT_EQ(segment_index, myPiecewisePolynomial.getNumSegments()-1);
     ASSERT_LE(std::abs(time_within_segment - 0.8), 1e-12);
 }
@@ -44,7 +44,7 @@ TEST(PiecewisePolyTest, TestMiddleIndex) {
     PiecewisePolynomial myPiecewisePolynomial = PiecewisePolynomial(order, taus);
     std::size_t segment_index;
     double time_within_segment;
-    myPiecewisePolynomial.findIndexBinarySearch(0.9, segment_index, time_within_segment);
+    myPiecewisePolynomial.findIndexLinearSearch(0.9, segment_index, time_within_segment);
     ASSERT_EQ(segment_index, 2);
     ASSERT_LE(std::abs(time_within_segment - 0.15), 1e-12);
 }
@@ -190,7 +190,7 @@ TEST(WaypointInterpolatorTest, TestWithTwoWaypoints) {
     Eigen::MatrixXd waypoints = Eigen::MatrixXd(4,2);
     waypoints << 1, 2,     // Initialize A. The elements can also be
             4, 8,    // matrices, which are stacked along cols
-            1, 49,
+            1, 4,
             120, 130;
     waypoint_interpolator.setWayPoints(waypoints);
 
