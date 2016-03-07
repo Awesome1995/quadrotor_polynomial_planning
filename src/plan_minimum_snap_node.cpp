@@ -29,7 +29,7 @@ public:
 
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
 
-		std::cout << "Finished constructing the plan min snap node" << std::endl;
+		std::cout << "Finished constructing the plan min snap node, waiting for waypoints" << std::endl;
 
 	}
 
