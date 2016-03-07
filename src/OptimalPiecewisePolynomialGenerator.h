@@ -21,6 +21,7 @@ public:
     void setUpOptimizationWithWaypoints(const Eigen::VectorXd waypoints, const double current_velocity);
     OptimalPiecewisePolynomial GenerateWithFixedTimeSegments(const Eigen::VectorXd & taus);
 
+
 private:
 
     void initializeOptimizationCriteria();

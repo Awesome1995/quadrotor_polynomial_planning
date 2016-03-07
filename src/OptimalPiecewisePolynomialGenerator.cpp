@@ -54,7 +54,7 @@ void OptimalPiecewisePolynomialGenerator::initializeOptimizationCriteria() {
     // Choose coefficients for the derivatives to minimize in the optimization
     // Zero-ordered index, so index=3 (fourth in list) is jerk
     //                        index=4 (fifth in list) is snap
-    derivatives_to_minimize << 0, 0, 0, 1, 0, 0, 0, 0, 0, 0;
+    derivatives_to_minimize << 0, 0, 1, 0, 0, 0, 0, 0, 0, 0;
 }
 
 void OptimalPiecewisePolynomialGenerator::setInitialPositionConstraint(const double initial_position) {
