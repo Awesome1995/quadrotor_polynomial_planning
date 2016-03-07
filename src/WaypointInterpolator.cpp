@@ -41,10 +41,10 @@ void WaypointInterpolator::setTausWithHeuristic() {
         euclidean_distance_xyz(i) = std::sqrt( std::pow(x2-x1, 2) + std::pow(y2-y1, 2) + std::pow(z2-z1, 2) );
 
         // For simply averaging 1 m / s
-        taus(i) = euclidean_distance_xyz(i);
+        //taus(i) = euclidean_distance_xyz(i);
 
         // Not a bad option for more aggressive, but goes fast over long distances
-        //taus(i) = std::sqrt(2 * euclidean_distance_xyz(i));
+        taus(i) = std::sqrt(2 * euclidean_distance_xyz(i));
 
         // For going ~ 3 m / s
 //        if (euclidean_distance_xyz(i) < 9.0/4.0) {
@@ -63,17 +63,25 @@ void WaypointInterpolator::setTausWithHeuristic() {
 void WaypointInterpolator::computeQuadSplineWithFixedTimeSegments() {
     // generate 4 optimal piecewise polys, one each for x, y, z, yaw
     // store each in the quad spline
+
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(0), current_velocities(0));
     quad_spline.x_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
+
+    std::cout << "x is ending at " << quad_spline.x_optimal_piecewise_poly.piecewise_poly.evalDerivative(100,0) << std::endl;
 
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(1), current_velocities(1));
     quad_spline.y_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
 
+    std::cout << "y is ending at " << quad_spline.y_optimal_piecewise_poly.piecewise_poly.evalDerivative(100,0) << std::endl;
+
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(2), current_velocities(2));
     quad_spline.z_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
 
+    std::cout << "z is ending at " << quad_spline.z_optimal_piecewise_poly.piecewise_poly.evalDerivative(100,0) << std::endl;
+
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(3), current_velocities(3));
     quad_spline.yaw_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
+
 };
 
 Eigen::MatrixXd WaypointInterpolator::getCurrentDerivativesOfQuadSpline() {

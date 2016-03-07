@@ -115,9 +115,6 @@ double PiecewisePolynomial::evalDerivative(double t, int derivative) const
     std::size_t segment_index;
     double time_within_segment;
     findIndexLinearSearch(t, segment_index, time_within_segment);
-    segment_index = 0;
-//    std::cout << "SEGMENT INDEX found was " << segment_index << " NUM SEGMENTS was " << getNumSegments() << std::endl;
-//    std::cout << "I have this many polys " << polynomials.size() << std::endl;
     return polynomials.at(segment_index)->eval(time_within_segment, derivative);
 }
 

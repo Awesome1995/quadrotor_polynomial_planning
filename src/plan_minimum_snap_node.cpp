@@ -67,7 +67,7 @@ private:
 			if (quad_spline_exists) {
 
 				Eigen::MatrixXd current_derivatives = waypoint_interpolator.getCurrentDerivativesOfQuadSpline();
-				std::cout << "Got current derivs " << current_derivatives << std::endl;
+				//std::cout << "Got current derivs " << current_derivatives << std::endl;
 
 				acl_fsw::QuadGoal local_goal_msg;
 				local_goal_msg.pos.x = current_derivatives(0,0);
@@ -92,6 +92,7 @@ private:
 
 				size_t samples = 100;
 				double final_time = waypoint_interpolator.getTotalTime();
+				std::cout << "final time is " << final_time << std::endl;
 				double dt = final_time/(samples-1);
 				double t;
 
@@ -128,7 +129,7 @@ private:
 		mutex.lock();
 		gotPose = true;
 		mutex.unlock();
-		std::cout << "Got pose" << std::endl;
+		//std::cout << "Got pose" << std::endl;
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
@@ -136,7 +137,7 @@ private:
 		mutex.lock();
 		gotVelocity = true;
 		mutex.unlock();
-		std::cout << "Got vel" << std::endl;
+		//std::cout << "Got vel" << std::endl;
 	}
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
