@@ -23,6 +23,7 @@ public:
 		nh.getParam("derivative_to_minimize", derivative_to_minimize);
 		nh.getParam("spline_eval_rate", spline_eval_rate);
 		nh.getParam("publish_spline_path", publish_spline_path);
+		nh.getParam("max_waypoints", max_waypoints);
 
 		waypoint_interpolator_building.setDerivativeToMinimize(derivative_to_minimize);
 
@@ -69,11 +70,13 @@ public:
 
 	void computeMinSnapNode() {
 
+
 		waypoint_interpolator_building.setWayPoints(waypoints_matrix);
 		waypoint_interpolator_building.setCurrentVelocities(velocity_x_y_z_yaw);
 		waypoint_interpolator_building.setCurrentPositions(pose_x_y_z_yaw);
 		waypoint_interpolator_building.setTausWithHeuristic();
 		waypoint_interpolator_building.computeQuadSplineWithFixedTimeSegments();
+		ROS_INFO("Computing spline trajectory for %d waypoints", (int) waypoints_matrix.cols() );
 
 		if (publish_spline_path) {
 			PublishSplinePath();
@@ -85,7 +88,6 @@ public:
 		waypoint_interpolator_built = waypoint_interpolator_building;
 		gotPose = gotVelocity = gotWaypoints = false;
 		mutex.unlock();
-		std::cout << "Computed min snap" << std::endl;
 	}
 
 private:
@@ -95,13 +97,11 @@ private:
 		ros::Rate spin_rate(spline_eval_rate);
 
 		while (ros::ok()) {
-			//std::cout << "eval_thread_function called" << std::endl;
 			if (quad_spline_exists) {
 
 				mutex.lock();
 
 				Eigen::MatrixXd current_derivatives = waypoint_interpolator_built.getCurrentDerivativesOfQuadSpline();
-				//std::cout << "Got current derivs " << current_derivatives << std::endl;
 
 				acl_fsw::QuadGoal local_goal_msg;
 				local_goal_msg.pos.x = current_derivatives(0,0);
@@ -147,7 +147,6 @@ private:
 		mutex.lock();
 		gotPose = true;
 		mutex.unlock();
-		std::cout << "Got pose" << std::endl;
 	}
 
 	void OnVelocity( geometry_msgs::TwistStamped const& twist) {
@@ -155,7 +154,6 @@ private:
 		mutex.lock();
 		gotVelocity = true;
 		mutex.unlock();
-		std::cout << "Got vel" << std::endl;
 	}
 
 	Eigen::Vector3d VectorFromPose(geometry_msgs::PoseStamped const& pose) {
@@ -165,17 +163,18 @@ private:
 
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
 
-		waypoints_matrix.resize(4, waypoints.poses.size());
-		waypoints_matrix.col(0) << VectorFromPose(waypoints.poses[0]), 0.0;  // yaw is currently hard set to be 0
+		int max_waypoints = 10;
+		int waypoints_to_check = std::min((int) waypoints.poses.size(), max_waypoints);
 
+		waypoints_matrix.resize(4, waypoints_to_check);
+		waypoints_matrix.col(0) << VectorFromPose(waypoints.poses[0]), 0.0;  // yaw is currently hard set to be 0
 		double distance_so_far = 0.0;
 		double distance_to_add;
 		double distance_left;
 		Eigen::Vector3d truncated_waypoint;
 		Eigen::Vector3d p1, p2;
 		int i;
-		std::cout << waypoints.poses.size() << " is size of waypoints" << std::endl;
-		for (i = 0; i < waypoints.poses.size() - 1; i++){
+		for (i = 0; i < waypoints_to_check - 1; i++){
 			p1 = VectorFromPose(waypoints.poses[i]);
 			p2 = VectorFromPose(waypoints.poses[i+1]);
 			distance_to_add = (p2-p1).norm();
@@ -196,9 +195,6 @@ private:
 
 
 		waypoints_matrix.conservativeResize(4, i+1);
-		std::cout << distance_so_far << " is how far I have left" << std::endl;
-		std::cout << "Waypoints matrix" << std::endl;
-		std::cout << waypoints_matrix << std::endl;
 
 		mutex.lock();
 		gotWaypoints = true;
@@ -221,6 +217,7 @@ private:
 	int derivative_to_minimize;
 	double spline_eval_rate;
 	bool publish_spline_path;
+	int max_waypoints;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Vector4d velocity_x_y_z_yaw;

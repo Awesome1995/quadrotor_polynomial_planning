@@ -3,5 +3,6 @@
     <param name="spline_eval_rate" value="100.0" type="double"/>
     <param name="publish_spline_path" value="true" type="bool"/>
     <param name="derivative_to_minimize" value="3" type="int" />
+    <param name="max_waypoints" value="10" type="int" />
     <node name="min_snap_node" pkg="splines" type="plan_minimum_snap_node" />
 </launch>
