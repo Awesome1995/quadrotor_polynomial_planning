@@ -67,17 +67,11 @@ void WaypointInterpolator::computeQuadSplineWithFixedTimeSegments() {
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(0), current_velocities(0));
     quad_spline.x_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
 
-    std::cout << "x is ending at " << quad_spline.x_optimal_piecewise_poly.piecewise_poly.evalDerivative(100,0) << std::endl;
-
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(1), current_velocities(1));
     quad_spline.y_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
 
-    std::cout << "y is ending at " << quad_spline.y_optimal_piecewise_poly.piecewise_poly.evalDerivative(100,0) << std::endl;
-
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(2), current_velocities(2));
     quad_spline.z_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);
-
-    std::cout << "z is ending at " << quad_spline.z_optimal_piecewise_poly.piecewise_poly.evalDerivative(100,0) << std::endl;
 
     optimal_piecewise_polynomial_generator.setUpOptimizationWithWaypoints(waypoints.row(3), current_velocities(3));
     quad_spline.yaw_optimal_piecewise_poly = optimal_piecewise_polynomial_generator.GenerateWithFixedTimeSegments(taus);

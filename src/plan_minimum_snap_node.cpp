@@ -19,7 +19,7 @@ public:
 		gotPose = gotVelocity = gotWaypoints = false;
 		quad_spline_exists = false;
 
-
+		nh.getParam("spline_horizon_distance", spline_horizon_distance);
 
 		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
@@ -92,7 +92,7 @@ private:
 
 				size_t samples = 100;
 				double final_time = waypoint_interpolator.getTotalTime();
-				std::cout << "final time is " << final_time << std::endl;
+
 				double dt = final_time/(samples-1);
 				double t;
 
@@ -140,18 +140,48 @@ private:
 		//std::cout << "Got vel" << std::endl;
 	}
 
+	Eigen::Vector3d VectorFromPose(geometry_msgs::PoseStamped const& pose) {
+		return Eigen::Vector3d(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
+	}
+
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
-		int max_waypoints = 10;															// Currently hard-coded to look at up to next 10 waypoints.  Will be better to switch this to a distance-cutoff receding horizon
-		size_t num_waypoints = std::min(max_waypoints, (int) waypoints.poses.size());
-		waypoints_matrix.resize(4,num_waypoints);
-		for (int i = 0; i < num_waypoints; i++) {
-			auto const& waypoint_i = waypoints.poses[i];
-			waypoints_matrix.col(i) << waypoint_i.pose.position.x, waypoint_i.pose.position.y, waypoint_i.pose.position.z, 0.0; // if we want yaw poses from waypoints, use instead tf::getYaw(waypoint_i.pose.orientation)
+		
+		waypoints_matrix.resize(4, waypoints.poses.size());
+		waypoints_matrix.col(0) << VectorFromPose(waypoints.poses[0]), 0.0;  // yaw is currently hard set to be 0
+
+		double distance_so_far = 0.0;
+		double distance_to_add;
+		double distance_left;
+		Eigen::Vector3d truncated_waypoint;
+		Eigen::Vector3d p1, p2;
+		int i;
+		for (i = 0; i < waypoints.poses.size() - 1; i++){
+			p1 = VectorFromPose(waypoints.poses[i]);
+			p2 = VectorFromPose(waypoints.poses[i+1]);
+			distance_to_add = (p2-p1).norm();
+			if ((distance_to_add + distance_so_far) < spline_horizon_distance) {
+				distance_so_far += distance_to_add;
+				waypoints_matrix.col(i + 1) << p2, 0.0; // yaw is currently hard set to be 0
+			}
+			else {
+				distance_left = spline_horizon_distance - distance_so_far;
+				truncated_waypoint = p1 + (p2-p1) / distance_to_add * distance_left;
+				distance_so_far = distance_so_far + distance_left;
+				waypoints_matrix.col(i + 1) << truncated_waypoint, 0.0; // yaw is currently hard set to be 0
+				i++;
+				break;
+
+			}
 		}
+		waypoints_matrix.conservativeResize(4, i+1);
+		std::cout << distance_so_far << " is how far I have left" << std::endl;
+		std::cout << "Waypoints matrix" << std::endl;
+		std::cout << waypoints_matrix << std::endl;
+
 		mutex.lock();
 		gotWaypoints = true;
 		mutex.unlock();
-		std::cout << "Got waypoints" << std::endl;
+
 	}
 
 
@@ -167,7 +197,10 @@ private:
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Vector4d velocity_x_y_z_yaw;
-	Eigen::MatrixXd waypoints_matrix;
+	double spline_horizon_distance;
+	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
+
+
 
 	bool gotPose, gotVelocity, gotWaypoints;
 	bool quad_spline_exists;
