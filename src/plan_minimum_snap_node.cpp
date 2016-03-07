@@ -21,8 +21,11 @@ public:
 
 		nh.getParam("spline_horizon_distance", spline_horizon_distance);
 		nh.getParam("derivative_to_minimize", derivative_to_minimize);
+		nh.getParam("spline_eval_rate", spline_eval_rate);
+		nh.getParam("publish_spline_path", publish_spline_path);
+
 		waypoint_interpolator_building.setDerivativeToMinimize(derivative_to_minimize);
-		
+
 
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
 		velocity_sub = nh.subscribe(velocity_topic, 1, &PlanMinimumSnapNode::OnVelocity, this);
@@ -47,6 +50,23 @@ public:
 		eval_thread = std::thread(&PlanMinimumSnapNode::eval_thread_function, this);
 	};
 
+	void PublishSplinePath(size_t samples = 100) {
+		nav_msgs::Path poly_samples_msg;
+		poly_samples_msg.header.frame_id = "world";
+		poly_samples_msg.header.stamp = ros::Time::now();
+		double final_time = waypoint_interpolator_building.getTotalTime();
+
+		double dt = final_time/(samples-1);
+		double t;
+
+		for (size_t i = 0; i < samples; i++) {
+			t = i * dt;
+			Eigen::MatrixXd derivatives = waypoint_interpolator_building.getDerivativesOfQuadSplineAtTime(t);
+			poly_samples_msg.poses.push_back(PoseFromDerivativeMatrix(derivatives));
+		}
+		poly_samples_pub.publish(poly_samples_msg);
+	}
+
 	void computeMinSnapNode() {
 
 		waypoint_interpolator_building.setWayPoints(waypoints_matrix);
@@ -54,6 +74,10 @@ public:
 		waypoint_interpolator_building.setCurrentPositions(pose_x_y_z_yaw);
 		waypoint_interpolator_building.setTausWithHeuristic();
 		waypoint_interpolator_building.computeQuadSplineWithFixedTimeSegments();
+
+		if (publish_spline_path) {
+			PublishSplinePath();
+		};
 
 		quad_spline_exists = true;
 
@@ -68,7 +92,7 @@ private:
 
 	void eval_thread_function() {
 
-		ros::Rate spin_rate(100);
+		ros::Rate spin_rate(spline_eval_rate);
 
 		while (ros::ok()) {
 			//std::cout << "eval_thread_function called" << std::endl;
@@ -98,25 +122,8 @@ private:
 
 				local_goal_pub.publish(local_goal_msg);
 
-				nav_msgs::Path poly_samples_msg;
-
-				size_t samples = 100;
-				double final_time = waypoint_interpolator_built.getTotalTime();
-
-				double dt = final_time/(samples-1);
-				double t;
-
-				for (size_t i = 0; i < samples; i++) {
-					t = i * dt;
-					Eigen::MatrixXd derivatives = waypoint_interpolator_built.getDerivativesOfQuadSplineAtTime(t);
-					poly_samples_msg.poses.push_back(PoseFromDerivativeMatrix(derivatives));
-				}
 				mutex.unlock();
 
-				poly_samples_msg.header.frame_id = "world";
-				poly_samples_msg.header.stamp = ros::Time::now();
-
-				poly_samples_pub.publish(poly_samples_msg);
 				ros::spinOnce();
 
 			}
@@ -212,6 +219,8 @@ private:
 	size_t num_waypoints;
 
 	int derivative_to_minimize;
+	double spline_eval_rate;
+	bool publish_spline_path;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Vector4d velocity_x_y_z_yaw;
