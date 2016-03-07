@@ -20,6 +20,7 @@ public:
     Eigen::MatrixXd getCurrentDerivativesOfQuadSpline();
     Eigen::MatrixXd getDerivativesOfQuadSplineAtTime(double t);
     double getTotalTime() const { return quad_spline.getTotalTime();};
+    void setDerivativeToMinimize(int derivative_to_minimize);
 
 private:
     OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;

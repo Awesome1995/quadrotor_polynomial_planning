@@ -190,7 +190,7 @@ TEST(WaypointInterpolatorTest, TestWithTwoWaypoints) {
     Eigen::MatrixXd waypoints = Eigen::MatrixXd(4,2);
     waypoints << 1, 2,     // Initialize A. The elements can also be
             4, 8,    // matrices, which are stacked along cols
-            1, 49,
+            1, 4,
             120, 130;
     waypoint_interpolator.setWayPoints(waypoints);
 

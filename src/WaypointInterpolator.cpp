@@ -4,6 +4,10 @@
 
 #include "WaypointInterpolator.h"
 
+void WaypointInterpolator::setDerivativeToMinimize(int derivative_to_minimize) {
+    optimal_piecewise_polynomial_generator.setDerivativeToMinimize(derivative_to_minimize);
+};
+
 void WaypointInterpolator::setWayPoints(const Eigen::MatrixXd waypoints) {
     // this for example would be called externally in order to pass in the waypoints matrix
     // format of waypoint matrix should be:

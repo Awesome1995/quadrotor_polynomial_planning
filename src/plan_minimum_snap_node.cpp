@@ -20,6 +20,8 @@ public:
 		quad_spline_exists = false;
 
 		nh.getParam("spline_horizon_distance", spline_horizon_distance);
+		nh.getParam("derivative_to_minimize", derivative_to_minimize);
+		waypoint_interpolator.setDerivativeToMinimize(derivative_to_minimize);
 
 		waypoints_sub = nh.subscribe(waypoint_topic, 1, &PlanMinimumSnapNode::OnWaypoints, this);
 		pose_sub = nh.subscribe(pose_topic, 1, &PlanMinimumSnapNode::OnPose, this);
@@ -144,8 +146,9 @@ private:
 		return Eigen::Vector3d(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
 	}
 
+
 	void OnWaypoints(nav_msgs::Path const& waypoints) {
-		
+
 		waypoints_matrix.resize(4, waypoints.poses.size());
 		waypoints_matrix.col(0) << VectorFromPose(waypoints.poses[0]), 0.0;  // yaw is currently hard set to be 0
 
@@ -192,14 +195,16 @@ private:
 	ros::Publisher poly_samples_pub;
 
 	nav_msgs::Path waypoints;
+	nav_msgs::Path previous_waypoints;
 
 	size_t num_waypoints;
+
+	int derivative_to_minimize;
 
 	Eigen::Vector4d pose_x_y_z_yaw;
 	Eigen::Vector4d velocity_x_y_z_yaw;
 	double spline_horizon_distance;
 	Eigen::Matrix<double, 4, Eigen::Dynamic> waypoints_matrix;
-
 
 
 	bool gotPose, gotVelocity, gotWaypoints;
