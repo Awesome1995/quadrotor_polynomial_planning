@@ -68,12 +68,9 @@ class master:
 
 	def goal_CB(self,data):
 
-		self.go = True
-
 		self.snap_goal = data
-
 		self.received_coeff = True
-		rospy.loginfo("Received passthrough goal")
+		#rospy.loginfo("Received passthrough goal")
 
 		# self.distance_check()
 
@@ -81,12 +78,6 @@ class master:
 	def send_goal(self):
 		self.goal.waypointType = self.wpType
 		self.pubGoal.publish(self.goal)
-
-
-
-	
-
-
 
 
 	def commandCB(self, data):
@@ -135,8 +126,6 @@ class master:
 
 		elif data.command == data.CMD_INIT and self.status == FLYING:
 			if self.received_coeff:
-				self.eval_splines()
-
 				self.goal.pos.x = self.x
 				self.goal.pos.y = self.y
 				self.goal.pos.z = self.z
@@ -162,8 +151,9 @@ class master:
 
 
 	def cmdTimer(self,e):	
-		if self.go and not self.status==LANDING:	
+		if self.go and not self.status==LANDING and not self.status==TAKEOFF:	
 
+			rospy.loginfo("Sending passthrough goal")
 			self.goal.pos = self.snap_goal.pos
 			self.goal.vel = self.snap_goal.vel
 			self.goal.yaw = self.snap_goal.yaw
@@ -202,7 +192,6 @@ if __name__ == '__main__':
 			rospy.logfatal("This is tyipcally accomplished in a launch file.")
 			rospy.logfatal("Command line: ROS_NAMESPACE=RQ01 $ rosrun quad_control circle.py")
 		else:
-			rospy.loginfo("Starting joystick teleop node for: " + ns)
 			master()
 			rospy.spin()   
 	except rospy.ROSInterruptException:
