@@ -6,7 +6,7 @@ import rosnode
 from nav_msgs.msg import Path
 from std_msgs.msg import Float64, Float64MultiArray
 from geometry_msgs.msg import PoseStamped, Pose, TwistStamped
-from std_srvs import Empty
+from std_srvs.srv import Empty
 
 from acl_fsw.msg import QuadGoal
 from splines.msg import Coeff
