@@ -145,10 +145,10 @@ class master:
 		elif data.command == data.CMD_GO and self.status == FLYING:
 			if self.received_coeff:
 				rospy.loginfo("Starting")
-				self.go = True
 				rospy.wait_for_service('/min_snap/ResetSequencer')
 		        reset_sequencer = rospy.ServiceProxy('/min_snap/ResetSequencer', Empty)
 		        reset_sequencer()
+		        self.go = True
 			else:
 				rospy.loginfo("Haven't received coefficients.")
 
