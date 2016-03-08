@@ -5,7 +5,7 @@
     <arg name="a_max" default="0.5"/>
   
     <!-- Start Master Node -->
-    <node name="master" pkg="splines" type="master_minsnap_fixedtakeoff.py" output="screen" ns="FLA_ACL02"/>
+    <node name="master" pkg="splines" type="master_minsnap.py" output="screen" ns="FLA_ACL02"/>
     
     <!-- Desired max velocity-->
     <param name="v_max" type="double" value="$(arg v_max)" />
