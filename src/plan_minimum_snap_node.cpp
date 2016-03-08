@@ -43,12 +43,12 @@ public:
 
 		reset_sequencer_server = nh.advertiseService("min_snap/ResetSequencer", &PlanMinimumSnapNode::ResetSequencerHandler, this);
 
-		std::cout << "Finished constructing the plan min snap node, waiting for waypoints" << std::endl;
-
+		ROS_INFO("Finished constructing the plan min snap node, waiting for waypoints");
 	}
 
 	bool ResetSequencerHandler(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
-		ROS_INFO("Got reset sequence");
+		ROS_WARN("Got reset sequence");
+		waypoint_interpolator_built.ResetSequencerTimeToZero();
 		return true;
 	}
 

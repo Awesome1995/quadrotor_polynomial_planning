@@ -21,6 +21,7 @@ public:
     Eigen::MatrixXd getDerivativesOfQuadSplineAtTime(double t);
     double getTotalTime() const { return quad_spline.getTotalTime();};
     void setDerivativeToMinimize(int derivative_to_minimize);
+    void ResetSequencerTimeToZero();
 
 private:
     OptimalPiecewisePolynomialGenerator optimal_piecewise_polynomial_generator;

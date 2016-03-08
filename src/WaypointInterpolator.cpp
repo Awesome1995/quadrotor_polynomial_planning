@@ -89,3 +89,7 @@ Eigen::MatrixXd WaypointInterpolator::getCurrentDerivativesOfQuadSpline() {
 Eigen::MatrixXd WaypointInterpolator::getDerivativesOfQuadSplineAtTime(double t) {
     return quad_spline.evalDerivativesAtTime(t);
 };
+
+void WaypointInterpolator::ResetSequencerTimeToZero() {
+    quad_spline_sequencer.resetTimeToZero();
+};
