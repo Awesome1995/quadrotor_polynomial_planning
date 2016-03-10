@@ -10,6 +10,7 @@
 #include <mutex>
 #include "WaypointInterpolator.h"
 #include <thread>
+#include <std_srvs/Empty.h>
 
 
 class PlanMinimumSnapNode {
@@ -39,8 +40,16 @@ public:
 
 		poly_samples_pub = nh.advertise<nav_msgs::Path>(samples_topic, 1);
 
-		std::cout << "Finished constructing the plan min snap node, waiting for waypoints" << std::endl;
 
+		reset_sequencer_server = nh.advertiseService("min_snap/ResetSequencer", &PlanMinimumSnapNode::ResetSequencerHandler, this);
+
+		ROS_INFO("Finished constructing the plan min snap node, waiting for waypoints");
+	}
+
+	bool ResetSequencerHandler(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+		ROS_WARN("Got reset sequence");
+		waypoint_interpolator_built.ResetSequencerTimeToZero();
+		return true;
 	}
 
 	bool readyToCompute() {
@@ -202,7 +211,7 @@ private:
 
 	}
 
-
+	ros::ServiceServer reset_sequencer_server;
 	ros::Subscriber waypoints_sub;
 	ros::Subscriber pose_sub;
 	ros::Subscriber velocity_sub;
